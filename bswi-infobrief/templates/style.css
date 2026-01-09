@@ -1,0 +1,454 @@
+/* BS:WI Corporate Design - Infobrief Stylesheet */
+
+:root {
+  /* BS:WI Farben */
+  --bswi-navy: #003366;
+  --bswi-lightblue: #00A3E0;
+  --bswi-yellow: #B5E505;
+  --bswi-white: #FFFFFF;
+  --bswi-gray: #333333;
+  --bswi-lightgray: #F5F5F5;
+
+  /* Layout */
+  --max-width: 800px;
+  --spacing: 20px;
+  --border-radius: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  color: var(--bswi-gray);
+  background-color: var(--bswi-lightgray);
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  background: var(--bswi-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header mit BS:WI Branding */
+.header {
+  background: linear-gradient(135deg, var(--bswi-navy) 0%, #004080 100%);
+  color: var(--bswi-white);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: var(--bswi-lightblue);
+  opacity: 0.1;
+  transform: rotate(45deg);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-logo img {
+  height: 50px;
+  margin-right: 15px;
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 300;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.bs-badge {
+  display: inline-block;
+  background: var(--bswi-yellow);
+  color: var(--bswi-navy);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 18px;
+  margin-left: 10px;
+}
+
+/* Metadaten */
+.metadata {
+  background: var(--bswi-lightgray);
+  padding: 20px 40px;
+  border-left: 4px solid var(--bswi-lightblue);
+  font-size: 14px;
+}
+
+.metadata p {
+  margin: 5px 0;
+}
+
+.metadata strong {
+  color: var(--bswi-navy);
+  font-weight: 600;
+}
+
+.metadata a {
+  color: var(--bswi-lightblue);
+  text-decoration: none;
+}
+
+.metadata a:hover {
+  text-decoration: underline;
+}
+
+/* Content */
+.content {
+  padding: 40px;
+}
+
+h2 {
+  color: var(--bswi-navy);
+  font-size: 24px;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--bswi-lightblue);
+}
+
+h3 {
+  color: var(--bswi-navy);
+  font-size: 18px;
+  margin-top: 25px;
+  margin-bottom: 10px;
+}
+
+/* Need-to-know & Nice-to-know Sections */
+.section-needtoknow,
+.section-nicetoknow {
+  background: var(--bswi-lightgray);
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: var(--border-radius);
+  border-left: 5px solid var(--bswi-lightblue);
+}
+
+.section-needtoknow {
+  border-left-color: var(--bswi-yellow);
+  background: #FFFEF0;
+}
+
+.section-needtoknow h3 {
+  color: var(--bswi-navy);
+  margin-top: 0;
+}
+
+.section-needtoknow h3::before {
+  content: "⚡ ";
+  color: var(--bswi-yellow);
+}
+
+.section-nicetoknow h3::before {
+  content: "ℹ️ ";
+}
+
+/* Listen */
+ul {
+  padding-left: 25px;
+}
+
+li {
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+
+/* Links */
+a {
+  color: var(--bswi-lightblue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Teams-Link Highlight */
+.teams-link {
+  display: inline-block;
+  background: var(--bswi-lightblue);
+  color: var(--bswi-white);
+  padding: 8px 15px;
+  border-radius: var(--border-radius);
+  margin: 10px 0;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.teams-link:hover {
+  background: var(--bswi-navy);
+  text-decoration: none;
+}
+
+/* Save-the-date Highlights */
+.save-the-date {
+  background: #FFF8E1;
+  border-left: 4px solid var(--bswi-yellow);
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-radius: var(--border-radius);
+}
+
+/* Blockquote (für Metadaten im Original) */
+blockquote {
+  background: var(--bswi-lightgray);
+  border-left: 4px solid var(--bswi-lightblue);
+  margin: 20px 0;
+  padding: 15px 20px;
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 5px 0;
+}
+
+/* Footer */
+.footer {
+  background: var(--bswi-navy);
+  color: var(--bswi-white);
+  padding: 30px 40px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footer-logo {
+  margin-bottom: 15px;
+}
+
+.footer-logo img {
+  height: 40px;
+  opacity: 0.8;
+}
+
+.footer p {
+  margin: 5px 0;
+  opacity: 0.9;
+}
+
+.footer-links {
+  margin-top: 15px;
+}
+
+.footer-links a {
+  color: var(--bswi-yellow);
+  margin: 0 10px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Horizontale Linie */
+hr {
+  border: none;
+  border-top: 2px solid var(--bswi-lightgray);
+  margin: 30px 0;
+}
+
+/* Print Styles */
+@media print {
+  /* Seitenlayout */
+  @page {
+    margin: 2cm;
+    size: A4 portrait;
+
+    /* Kopfzeile auf jeder Seite (außer der ersten) */
+    @top-right {
+      content: "BS:WI Hamburg";
+      font-size: 10pt;
+      color: #003366;
+    }
+
+    /* Fußzeile mit Seitenzahl */
+    @bottom-center {
+      content: "Seite " counter(page);
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+
+  /* Erste Seite ohne Kopfzeile */
+  @page :first {
+    @top-right {
+      content: none;
+    }
+  }
+
+  body {
+    background: white;
+    padding: 0;
+    color: #000;
+  }
+
+  .container {
+    box-shadow: none;
+    max-width: 100%;
+  }
+
+  /* Header optimiert für Druck */
+  .header {
+    background: #003366 !important;
+    color: white !important;
+    padding: 30px 40px !important;
+    page-break-after: avoid;
+  }
+
+  .header::before {
+    display: none;
+  }
+
+  .header-logo img {
+    max-height: 40px;
+    filter: brightness(0) invert(1); /* Logo weiß machen für dunklen Hintergrund */
+  }
+
+  /* Metadaten */
+  .metadata {
+    background: #f5f5f5 !important;
+    border-left: 3px solid #666 !important;
+    page-break-after: avoid;
+    padding: 15px 30px !important;
+  }
+
+  .metadata strong {
+    color: #000 !important;
+  }
+
+  /* Content */
+  .content {
+    padding: 30px 40px !important;
+  }
+
+  /* Überschriften - Seitenumbrüche optimieren */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    color: #000 !important;
+  }
+
+  h2 {
+    border-bottom: 2px solid #666 !important;
+    margin-top: 20px !important;
+  }
+
+  /* Need-to-know & Nice-to-know - Seitenumbrüche vermeiden */
+  .section-needtoknow,
+  .section-nicetoknow {
+    page-break-inside: avoid;
+    background: #f5f5f5 !important;
+    border: 2px solid #333 !important;
+    border-left: 5px solid #333 !important;
+    margin: 15px 0 !important;
+  }
+
+  .section-needtoknow {
+    border-left-color: #000 !important;
+    background: #fafafa !important;
+  }
+
+  .section-needtoknow h3::before,
+  .section-nicetoknow h3::before {
+    color: #000 !important;
+  }
+
+  /* Listen */
+  ul {
+    page-break-inside: avoid;
+  }
+
+  li {
+    page-break-inside: avoid;
+    margin-bottom: 8px;
+  }
+
+  /* Links - für S/W-Druck */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  .teams-link {
+    background: #e0e0e0 !important;
+    color: #000 !important;
+    border: 2px solid #333 !important;
+    text-decoration: none;
+  }
+
+  /* Save-the-date */
+  .save-the-date {
+    background: #f0f0f0 !important;
+    border-left: 4px solid #000 !important;
+  }
+
+  /* Footer */
+  .footer {
+    background: #333 !important;
+    color: white !important;
+    margin-top: 30px;
+    page-break-before: avoid;
+  }
+
+  .footer-links a {
+    color: #ccc !important;
+  }
+
+  /* BS-Badge */
+  .bs-badge {
+    background: #ddd !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+  }
+
+  /* Allgemeine Print-Optimierungen */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header,
+  .content,
+  .footer {
+    padding: 20px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+}
