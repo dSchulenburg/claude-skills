@@ -2,11 +2,39 @@
 name: recherche-workflow
 description: Research workflow for finding well-substantiated contrarian positions. Specialized in anarchist theory, stigmergy, grassroots movements, guerilla gardening, and alternative media. Use when researching topics that benefit from non-mainstream perspectives with academic rigor.
 license: MIT
+tools:
+  - WebSearch
+  - WebFetch
 ---
 
 # Recherche-Workflow: Abseitige Positionen mit Substanz
 
 Systematischer Workflow zur Recherche von gut untermauerten, nicht-mainstream Perspektiven zu gesellschaftlichen, politischen und kulturellen Themen.
+
+## MCP/Tool Integration (WICHTIG)
+
+**Dieser Skill nutzt folgende Tools direkt:**
+
+| Tool | Zweck |
+|------|-------|
+| `WebSearch` | Web-Suche nach Quellen, akademischen Papers, Bewegungsliteratur |
+| `WebFetch` | Inhalte von URLs abrufen und analysieren |
+
+**Suchstrategien:**
+```
+WebSearch: "[Thema] site:theanarchistlibrary.org"
+WebSearch: "[Thema] anarchist OR commons OR grassroots filetype:pdf"
+WebSearch: "[Thema] site:academia.edu"
+WebFetch: URL + Prompt zur Inhaltsextraktion
+```
+
+**IMMER die Tools nutzen - nicht nur dokumentieren, sondern aktiv suchen und fetchen!**
+
+**Ergebnisse speichern:**
+- Recherche-Notizen in `_DEV_DOCS/Recherche/[Thema]-Recherche.md`
+- Format: Obsidian-kompatibles Markdown mit YAML-Frontmatter
+
+---
 
 ## Wann diesen Skill nutzen
 

@@ -2,11 +2,36 @@
 name: blog-article-workflow
 description: Complete workflow for creating and publishing blog articles with Claude AI and WordPress MCP integration. Use when creating educational blog posts, tutorial articles, or documentation that needs to be published to WordPress.
 license: MIT
+mcp_servers:
+  - wordpress
 ---
 
 # Blog Article Creation Workflow
 
-Step-by-step workflow for creating high-quality blog articles from concept to publication, with optional WordPress automation via MCP.
+Step-by-step workflow for creating high-quality blog articles from concept to publication, with WordPress automation via MCP.
+
+## MCP Integration (WICHTIG)
+
+**Dieser Skill nutzt den WordPress MCP Server direkt. Verwende immer diese Tools:**
+
+| Tool | Zweck |
+|------|-------|
+| `wp_upload_media_from_url` | Bild hochladen, gibt Media-ID zurück |
+| `wp_create_post` | Neuen Beitrag erstellen (mit `featuredMediaId`) |
+| `wp_update_post` | Bestehenden Beitrag aktualisieren |
+| `wp_list_posts` | Beiträge auflisten |
+| `wp_list_media` | Medien in Bibliothek auflisten |
+
+**Standard-Workflow:**
+```
+1. wp_upload_media_from_url → Media-ID erhalten
+2. wp_create_post mit featuredMediaId → Draft erstellen
+3. User reviewed in WordPress → Publish
+```
+
+**NIEMALS SSH oder manuelle API-Calls verwenden - immer die MCP-Tools nutzen!**
+
+---
 
 ## When to Use This Skill
 
