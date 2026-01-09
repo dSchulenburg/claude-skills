@@ -378,19 +378,27 @@ wp_create_post({
 ### With Featured Image
 
 ```javascript
-// First, upload image
-wp_upload_media_from_url({
+// Step 1: Upload image and get Media-ID
+const media = await wp_upload_media_from_url({
   fileUrl: "https://example.com/image.png",
   title: "Article Featured Image",
   altText: "Description for SEO"
 });
+// Response includes: Media-ID: 123
+// Tipp: Verwende featuredMediaId: 123 bei wp_create_post...
 
-// Then create post with image ID
+// Step 2: Create post with Featured Image
 wp_create_post({
   title: "Article Title",
   content: articleContent,
   status: "draft",
-  featuredImageId: 123  // from upload response
+  featuredMediaId: media.id  // Sets Featured Image automatically!
+});
+
+// Alternative: Update existing post with Featured Image
+wp_update_post({
+  id: 456,
+  featuredMediaId: media.id
 });
 ```
 

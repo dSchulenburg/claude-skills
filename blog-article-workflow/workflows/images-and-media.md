@@ -86,12 +86,20 @@ const result = await MyWordPressMCP:wp_upload_media_from_url({
 
 **As Featured Image:**
 ```javascript
+// Step 1: Upload the image first
+const media = await MyWordPressMCP:wp_upload_media_from_url({
+  fileUrl: "https://undraw.co/download/education.png",
+  title: "Article Featured Image",
+  altText: "Description for accessibility and SEO"
+});
+// Returns: { id: 123, source_url: "...", mime_type: "..." }
+
+// Step 2: Create post with featured image
 await MyWordPressMCP:wp_create_post({
   title: "Article Title",
   content: articleHtml,
-  // Note: featuredImageId parameter not yet available in MCP
-  // Set featured image manually in WordPress admin after creating draft
-  status: "draft"
+  status: "draft",
+  featuredMediaId: media.id  // Sets the Featured Image automatically!
 });
 ```
 
