@@ -16,9 +16,10 @@ Setzt konkrete Optimierungen für Moodle-Abschnitte um: Labels, H5P, Struktur, M
 
 ## Voraussetzungen
 
-- **MCP Server**: moodle-mcp, wordpress-mcp (für H5P)
+- **MCP Server**: moodle-mcp (v2.4.0+) mit H5P-Tools
 - **Skills**: h5p-generator (für H5P-Erstellung)
 - **Analyse**: Idealerweise vorher `moodle-section-analyzer` ausführen
+- **Optional**: wordpress-mcp (nur falls WordPress H5P benötigt wird)
 
 ## Optimierungs-Bausteine
 
@@ -100,45 +101,63 @@ Visuelle Trenner für Abschnittsphasen:
 | Krit. Denken ↓ | Fill in Blanks | Definitionen vervollständigen |
 | Kommunikation ↓ | Documentation Tool | Strukturierte Reflexion |
 
-**⚠️ KRITISCH: H5P-Embed-URL**
+**✅ EMPFOHLEN: Native Moodle H5P (Content Bank)**
 
-```html
-<!-- FALSCH - lädt ZIP herunter! -->
-<iframe src="https://example.com/?p=123&h5p=19"></iframe>
-<iframe src="https://example.com/wp-content/uploads/h5p/..."></iframe>
+Seit dem `local_h5p_api` Plugin können H5P-Inhalte direkt in Moodle gespeichert werden:
 
-<!-- RICHTIG - H5P-Player wird angezeigt -->
-<iframe src="https://example.com/wp-admin/admin-ajax.php?action=h5p_embed&id=19"></iframe>
+| Vorteil | Beschreibung |
+|---------|--------------|
+| Im Backup | H5P wird mit Kurs exportiert |
+| Keine Abhängigkeit | WordPress muss nicht laufen |
+| Filter-Syntax | `{h5p:contentid}` in Moodle möglich |
+
+**Workflow für native Moodle H5P:**
+
+```python
+# 1. H5P generieren mit h5p-generator
+from h5p_generator import create_multi_choice
+questions = [...]
+create_multi_choice("Checkout-Quiz", questions, "checkout-quiz")
+# → Datei: checkout-quiz.h5p
+
+# 2. H5P zu Moodle hochladen (via MCP)
+moodle_upload_h5p({
+    "base64data": "[BASE64_ENCODED_H5P]",
+    "filename": "checkout-quiz.h5p",
+    "title": "Checkout-Quiz",
+    "courseid": 6
+})
+# → Response: { contentid: 42, embedurl: "...", iframecode: "..." }
+
+# 3. In Section einbetten (via moodle_update_section oder moodle_create_label)
 ```
 
-Die korrekte Embed-URL ist:
+**Moodle H5P Embed-Format:**
 ```
-https://[DOMAIN]/wp-admin/admin-ajax.php?action=h5p_embed&id=[H5P_ID]
+https://moodle.example.com/h5p/embed.php?url=https%3A%2F%2Fmoodle.example.com%2Fpluginfile.php%2F[contextid]%2Fcontentbank%2Fpublic%2F[contentid]%2F[filename]
 ```
 
 **Zwei Einbettungs-Optionen:**
 
 | Option | Methode | Wann nutzen |
 |--------|---------|-------------|
-| **Label (inline)** | `moodle_create_label` mit iframe | Kurze Quizze, direkt sichtbar |
-| **Page (Unterseite)** | `moodle_create_page` mit iframe | Längere Inhalte, aufgeräumter |
+| **In Section Summary** | `moodle_update_section` mit iframe | Direkt im Abschnitt sichtbar |
+| **Als Label** | `moodle_create_label` mit iframe | Mehr Kontrolle über Position |
+| **Als Page** | `moodle_create_page` mit iframe | Längere Inhalte, aufgeräumter |
 
-**Option A: Label (inline auf Kursseite)**
+**Beispiel: H5P in Section Summary:**
 ```html
-<div style="background: #f5f5f5; padding: 20px; border-radius: 8px;">
-  <h4>🎮 Selbsttest: [TITEL]</h4>
-  <iframe src="https://[DOMAIN]/wp-admin/admin-ajax.php?action=h5p_embed&id=[ID]" 
-          width="100%" height="450" frameborder="0" allowfullscreen></iframe>
-</div>
-```
-
-**Option B: Page (separate Seite)**
-```html
-<iframe src="https://[DOMAIN]/wp-admin/admin-ajax.php?action=h5p_embed&id=[ID]" 
+<h4>Wissenstest</h4>
+<iframe src="https://moodle.example.com/h5p/embed.php?url=..."
         width="100%" height="600" frameborder="0" allowfullscreen></iframe>
 ```
 
-**Empfehlung:** Label für Selbsttests (5-10 Fragen), Page für umfangreiche Inhalte.
+**Alternative: WordPress H5P (Legacy)**
+
+Falls WordPress H5P noch benötigt wird:
+```
+https://[DOMAIN]/wp-admin/admin-ajax.php?action=h5p_embed&id=[H5P_ID]
+```
 
 **Erstellung:**
 ```python
@@ -212,20 +231,22 @@ moodle:moodle_create_label({
 // 2. H5P erstellen (via h5p-generator)
 // → Datei: checkout-quiz.h5p
 
-// 3. H5P zu WordPress hochladen
-wordpress:wp_import_h5p_content({
-  base64Data: "[BASE64]",
-  title: "Checkout-Quiz"
+// 3. H5P zu Moodle Content Bank hochladen (empfohlen)
+moodle:moodle_upload_h5p({
+  base64data: "[BASE64]",
+  filename: "checkout-quiz.h5p",
+  title: "Checkout-Quiz",
+  courseid: "6"
 })
-// → h5pId: 42
+// → { contentid: 42, embedurl: "...", iframecode: "..." }
 
-// 4. H5P in Moodle einbetten (als Page mit iframe)
-moodle:moodle_create_page({
+// 4. H5P in Abschnitt einbetten
+moodle:moodle_update_section({
   courseId: "6",
   sectionNum: "2",
-  pageName: "🎮 Quiz: Checkout-Basics",
-  content: `<iframe src="https://www.dirk-schulenburg.net/?p=123" 
-            width="100%" height="500" frameborder="0"></iframe>`
+  summary: `<h4>🎮 Quiz: Checkout-Basics</h4>
+            <iframe src="[embedurl from response]"
+            width="100%" height="600" frameborder="0" allowfullscreen></iframe>`
 })
 ```
 
@@ -347,16 +368,37 @@ Nach Optimierung sollte ein Abschnitt folgende Struktur haben:
 | **Module immer am Ende** | Moodle-API hat keinen `position` Parameter → Manuell in Moodle sortieren |
 | **Keine Modul-Sortierung** | Moodle Web-Services unterstützen kein `move_module` → Drag&Drop im Browser |
 | **Kein Forum/Quiz erstellen** | Moodle-API-Limitation → Manuell anlegen oder Template-Kurs nutzen |
-| **H5P nur via iframe** | Kein natives Moodle-H5P-Plugin → WordPress-Embed |
 
 ### Empfohlener Workflow
 
 1. **Erst analysieren** (moodle-section-analyzer)
-2. **Labels + Pages erstellen** (dieser Skill)
-3. **In Moodle einloggen** → Module per Drag&Drop sortieren
-4. **Foren manuell anlegen** (falls benötigt)
+2. **H5P generieren** (h5p-generator)
+3. **H5P zu Moodle hochladen** (moodle_upload_h5p)
+4. **Labels + Pages erstellen** (dieser Skill)
+5. **In Moodle einloggen** → Module per Drag&Drop sortieren
+6. **Foren manuell anlegen** (falls benötigt)
+
+## ⚠️ Kritische Warnung: Berechtigungen
+
+Nach CLI-Befehlen im Moodle-Container können Berechtigungsprobleme auftreten!
+
+**Symptom:** "Invalid permissions detected when trying to create a directory"
+
+**Lösung:**
+```bash
+docker exec moodle chown -R daemon:daemon /bitnami/moodledata/
+```
+
+Siehe: [[Moodle-Learnings#KRITISCH moodledata Berechtigungsproblem]]
+
+## Referenzen
+
+- [[Moodle]] - MCP Server Dokumentation v2.4.0+
+- [[Moodle-Learnings]] - Troubleshooting & Best Practices
+- [[local_h5p_api Plugin]] - H5P Upload/Embed API
 
 ---
 
-*Skill Version: 1.0*
-*Abhängigkeiten: moodle-mcp, wordpress-mcp, h5p-generator*
+*Skill Version: 1.1*
+*Abhängigkeiten: moodle-mcp (v2.4.0+), h5p-generator*
+*Letzte Aktualisierung: 2026-01-15*

@@ -234,13 +234,61 @@ Abschnitt: 2 (Checkout-Prozess analysieren)
 | `h5p-generator` | Erstellt empfohlene H5P-Elemente |
 | `lernfeld-zu-moodle-kurs` | Kann Analyzer für QA nutzen |
 
+## Native Moodle H5P (empfohlen)
+
+Seit dem `local_h5p_api` Plugin können H5P-Inhalte direkt in der Moodle Content Bank gespeichert werden. Dies hat Vorteile gegenüber WordPress-Embedding:
+
+| Aspekt | WordPress H5P | Moodle H5P (nativ) |
+|--------|---------------|-------------------|
+| Backup | Nicht im Kurs-Export | ✅ Im Kurs-Backup |
+| Embed | iframe zu WordPress | ✅ Moodle-native |
+| Filter | Nein | ✅ `{h5p:id}` möglich |
+| Abhängigkeit | WordPress muss laufen | ✅ Standalone |
+
+**Empfohlener H5P-Workflow:**
+1. H5P generieren mit `h5p-generator` Skill
+2. Upload via `moodle_upload_h5p` (MCP Server v2.4.0+)
+3. Embed via iframe oder Moodle-Filter `{h5p:contentid}`
+
+**Embed-URL-Format:**
+```
+https://moodle.example.com/h5p/embed.php?url=https%3A%2F%2Fmoodle.example.com%2Fpluginfile.php%2F[contextid]%2Fcontentbank%2Fpublic%2F[contentid]%2F[filename]
+```
+
+## ⚠️ Kritische Warnung: Berechtigungen
+
+Nach CLI-Befehlen im Moodle-Container können Berechtigungsprobleme auftreten:
+
+**Symptom:** "Invalid permissions detected when trying to create a directory"
+
+**Ursache:** CLI-Befehle als root erstellen Verzeichnisse mit `root:root` statt `daemon:daemon`
+
+**Lösung:**
+```bash
+docker exec moodle chown -R daemon:daemon /bitnami/moodledata/
+```
+
+**Prävention:** CLI-Befehle als daemon ausführen:
+```bash
+docker exec -u daemon moodle php /bitnami/moodle/admin/cli/purge_caches.php
+```
+
+Siehe auch: [[Moodle-Learnings#KRITISCH moodledata Berechtigungsproblem]]
+
 ## Limitations
 
 - Kann Inhaltsqualität nicht bewerten (nur Struktur)
 - Matchplan-Abgleich erfordert manuellen Input
-- H5P-Inhalte in Moodle nicht direkt analysierbar
+- H5P-Inhalte in Moodle nicht direkt analysierbar (nur Existenz prüfbar)
+
+## Referenzen
+
+- [[Moodle]] - MCP Server Dokumentation
+- [[Moodle-Learnings]] - Troubleshooting & Best Practices
+- [[local_h5p_api Plugin]] - H5P Upload/Embed API
 
 ---
 
-*Skill Version: 1.0*
-*Abhängigkeiten: moodle-mcp*
+*Skill Version: 1.1*
+*Abhängigkeiten: moodle-mcp (v2.4.0+)*
+*Letzte Aktualisierung: 2026-01-15*

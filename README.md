@@ -21,7 +21,7 @@ Deine Custom Skills für Claude Desktop - bereit zum Einsatz! 🚀
 
 ### 2. h5p-wordpress-workflow
 **Was es macht:**
-- H5P Content-Erstellung
+- H5P Content-Erstellung (manuell)
 - WordPress Integration
 - MCP Automation
 - Best Practices für interaktive Inhalte
@@ -33,20 +33,82 @@ Deine Custom Skills für Claude Desktop - bereit zum Einsatz! 🚀
 
 ---
 
+### 3. h5p-generator ⭐ NEU
+**Was es macht:**
+- Erstellt .h5p-Dateien **direkt aus Python** ohne Web-Editor
+- Unterstützt: True/False, Multiple Choice, Fill in Blanks, Drag & Drop
+- Batch-Erstellung mehrerer H5P-Dateien
+- Export für Moodle, WordPress oder andere LMS
+
+**Wann wird es aktiviert:**
+- "Erstelle H5P Dateien für mein Quiz"
+- "Generiere ein Multiple Choice H5P"
+- "H5P Lückentext programmatisch erstellen"
+- "Drag and Drop H5P generieren"
+
+**Unterstützte Content-Types:**
+
+| Typ | Funktion | Beispiel |
+|-----|----------|----------|
+| True/False | `create_true_false()` | Wahr/Falsch Quizze |
+| Multiple Choice | `create_multi_choice()` | MC-Fragen mit 4+ Optionen |
+| Fill in Blanks | `create_fill_blanks()` | Lückentexte mit `*Lücke*` |
+| Drag & Drop | `create_drag_drop()` | Zuordnungsaufgaben |
+
+**Quick Start:**
+```python
+from h5p_generator import create_true_false
+
+questions = [
+    {
+        "text": "Python ist eine Programmiersprache.",
+        "correct": True,
+        "feedback_correct": "Richtig!",
+        "feedback_wrong": "Doch, ist es!"
+    }
+]
+create_true_false("Mein Quiz", questions, "quiz-name")
+# → Erstellt: /home/claude/h5p-output/quiz-name.h5p
+```
+
+---
+
+### 4. recherche-workflow
+**Was es macht:**
+- Strukturierte Web-Recherche
+- Quellensammlung und -bewertung
+- Zusammenfassung von Recherche-Ergebnissen
+
+**Wann wird es aktiviert:**
+- "Recherchiere zu [THEMA]"
+- "Finde Quellen über [THEMA]"
+
+---
+
+### 5. bswi-infobrief
+**Was es macht:**
+- Schulspezifische Formatierung
+- Infobrief-Erstellung für BSWI
+
+**Wann wird es aktiviert:**
+- Schulspezifische Anfragen
+
+---
+
 ## 🚀 Installation
 
 ### Schritt 1: Script ausführen
 
 **Option A: Doppelklick**
 ```
-1. Navigiere zu: C:\Users\mail\OneDrive\Dokumente\EigeneProjekte\dev\claude-skills
+1. Navigiere zu: C:\Users\mail\entwicklung\docker\claude-skills
 2. Doppelklick auf: install-skills.bat
 3. Script führt automatisch Installation durch
 ```
 
 **Option B: Command Line**
 ```cmd
-cd C:\Users\mail\OneDrive\Dokumente\EigeneProjekte\dev\claude-skills
+cd C:\Users\mail\entwicklung\docker\claude-skills
 install-skills.bat
 ```
 
@@ -80,11 +142,10 @@ Erstelle einen Blog-Artikel über "Git Workflow für Lehrer"
 - ✅ Erstellt strukturierten Artikel
 - ✅ Nutzt Emoji für Scanbarkeit
 - ✅ Generiert WordPress-kompatibles HTML
-- ✅ Schlägt undraw.co Illustrationen vor
 
 ---
 
-### Test 2: H5P Content
+### Test 2: H5P Content (manuell)
 
 ```
 Wie erstelle ich ein Interactive Video mit H5P?
@@ -94,21 +155,36 @@ Wie erstelle ich ein Interactive Video mit H5P?
 - ✅ Claude nutzt automatisch h5p-wordpress-workflow
 - ✅ Erklärt H5P Content-Types
 - ✅ Zeigt WordPress Integration
-- ✅ Bietet MCP Automation an
 
 ---
 
-### Test 3: Artikel mit MCP publizieren
+### Test 3: H5P Generator (automatisch) ⭐
 
 ```
-Erstelle einen Artikel über "Docker Basics" und publiziere ihn als Draft zu WordPress
+Erstelle ein True/False Quiz über Deutschland mit 5 Fragen als H5P-Datei
 ```
 
 **Erwartetes Verhalten:**
-- ✅ Erstellt Artikel-Struktur
-- ✅ Nutzt WordPress HTML Blöcke
-- ✅ Ruft MyWordPressMCP:wp_create_post auf
-- ✅ Erstellt Draft in WordPress
+- ✅ Claude nutzt h5p-generator Skill
+- ✅ Generiert Python-Code mit h5p_generator.py
+- ✅ Erstellt .h5p-Datei im Output-Ordner
+- ✅ Datei kann direkt in Moodle/WordPress importiert werden
+
+---
+
+### Test 4: Batch H5P Erstellung
+
+```
+Erstelle für mein Modul "Botanik" folgende H5P-Dateien:
+1. Ein True/False Quiz mit 3 Fragen
+2. Einen Lückentext über Photosynthese
+3. Ein Drag & Drop zur Pflanzenzuordnung
+```
+
+**Erwartetes Verhalten:**
+- ✅ Erstellt 3 separate .h5p-Dateien
+- ✅ Alle mit korrektem Content
+- ✅ Bereit zum Import
 
 ---
 
@@ -119,14 +195,23 @@ Nach Installation sollte das Verzeichnis so aussehen:
 ```
 %APPDATA%\Claude\skills\
 ├── blog-article-workflow\
-│   ├── SKILL.md                    # Haupt-Skill Dokumentation
-│   ├── QUICK_REFERENCE.md          # Schnell-Referenz
+│   ├── SKILL.md
+│   ├── QUICK_REFERENCE.md
 │   ├── workflows\
-│   │   └── images-and-media.md     # Bild-Integration Guide
 │   └── examples\
-│       └── docker-n8n-article-test.md
-└── h5p-wordpress-workflow\
-    └── SKILL.md                     # H5P Skill Dokumentation
+├── h5p-wordpress-workflow\
+│   ├── SKILL.md
+│   └── references\
+├── h5p-generator\                    # ⭐ NEU
+│   ├── SKILL.md
+│   ├── scripts\
+│   │   └── h5p_generator.py
+│   └── references\
+│       └── h5p-json-structure.md
+├── recherche-workflow\
+│   └── SKILL.md
+└── bswi-infobrief\
+    └── SKILL.md
 ```
 
 **Voller Pfad (Windows):**
@@ -144,20 +229,24 @@ C:\Users\mail\AppData\Roaming\Claude\skills\
 1. ✅ Claude Desktop KOMPLETT neu gestartet?
 2. ✅ Skills-Verzeichnis existiert: `%APPDATA%\Claude\skills\`
 3. ✅ SKILL.md Dateien vorhanden in Unterordnern?
-4. ✅ Prompt triggert Skill-Keywords? (z.B. "Blog-Artikel", "H5P")
+4. ✅ Prompt triggert Skill-Keywords?
 
 **Check-Command:**
 ```cmd
-dir "%APPDATA%\Claude\skills\blog-article-workflow"
+dir "%APPDATA%\Claude\skills\"
 ```
 
-Sollte zeigen:
-```
-SKILL.md
-QUICK_REFERENCE.md
-workflows\
-examples\
-```
+---
+
+### Problem: h5p-generator erstellt keine Dateien
+
+**Symptom:**
+Claude beschreibt den Code, aber erstellt keine .h5p-Datei
+
+**Lösung:**
+1. ✅ Skill muss in Claude.ai mit Computer-Nutzung laufen (nicht Claude Desktop)
+2. ✅ Oder: Code manuell in Python ausführen
+3. ✅ Output-Verzeichnis prüfen: `/home/claude/h5p-output/`
 
 ---
 
@@ -167,66 +256,28 @@ examples\
 Claude kann Artikel erstellen, aber nicht zu WordPress publizieren
 
 **Lösung:**
-1. ✅ MCP Server läuft? (Docker Desktop → Containers → wp-mcp)
+1. ✅ MCP Server läuft? (Docker Desktop → Containers)
 2. ✅ MCP in Claude Desktop konfiguriert?
-3. ✅ Test: `docker ps` zeigt wp-mcp Container?
+3. ✅ Test: `docker ps` zeigt MCP Container?
 
 ---
 
-### Problem: undraw.co Bilder werden nicht gefunden
+## 🎯 Skill-Kombinationen
 
-**Symptom:**
-Skill schlägt Illustrationen vor, aber Upload schlägt fehl
+### H5P Workflow komplett
 
-**Lösung:**
-Das ist normal! undraw.co CDN ist manchmal nicht verfügbar.
-
-**Workaround:**
 ```
-1. Gehe manuell zu https://undraw.co/illustrations
-2. Suche + Download Illustrationen
-3. Upload via WordPress Media Library
-4. Oder: wp_upload_media_from_url mit eigener URL
+1. Erstelle H5P-Dateien mit h5p-generator
+2. Lade zu WordPress hoch mit h5p-wordpress-workflow
+3. Erstelle Blog-Artikel mit blog-article-workflow
+4. Bette H5P ein
 ```
 
----
-
-## 🎯 Nächste Schritte
-
-### Diese Woche:
-- [ ] Skills installiert & getestet
-- [ ] Ersten Artikel mit Skill erstellt
-- [ ] MCP Publishing getestet
-
-### Nächste Woche:
-- [ ] Skills erweitern (neue Workflows)
-- [ ] Eigene Templates erstellen
-- [ ] Weitere Skills hinzufügen
-
-### Langfristig:
-- [ ] Skills für andere Projekte anpassen
-- [ ] Skill-Creator nutzen für neue Skills
-- [ ] Skills mit Team teilen
-
----
-
-## 📝 Skills aktualisieren
-
-**Bei Änderungen an den Skills:**
-
-```cmd
-# Skills neu installieren
-cd C:\Users\mail\OneDrive\Dokumente\EigeneProjekte\dev\claude-skills
-install-skills.bat
-
-# Claude Desktop neu starten
-# (komplett beenden + neu öffnen)
+**Beispiel-Prompt:**
 ```
-
-**Automatisches Update (geplant):**
-- Git-Repository mit Skills
-- Auto-Sync bei Änderungen
-- Version Control
+Erstelle ein Quiz über Photosynthese als H5P-Datei und 
+dann einen Blog-Artikel der das Quiz einbettet
+```
 
 ---
 
@@ -236,37 +287,31 @@ install-skills.bat
 ```
 Erstelle einen H5P Tutorial-Artikel über Interactive Videos
 ```
-→ Nutzt BEIDE Skills zusammen!
+→ Nutzt BEIDE H5P-Skills zusammen!
 
-### Tip 2: Explizite Skill-Auswahl
+### Tip 2: Batch-Erstellung
 ```
-Nutze den blog-article-workflow Skill um einen Artikel über Python zu erstellen
+Erstelle für jeden Monat des Jahres ein True/False Quiz als H5P
 ```
-→ Forciert spezifischen Skill
+→ Generator erstellt 12 Dateien automatisch
 
-### Tip 3: Quick Reference nutzen
+### Tip 3: Fill in Blanks Syntax
 ```
-Zeige mir die undraw.co Workflow Quick Reference
+Lücken mit *Sternchen* markieren.
+Mehrere Antworten: *Antwort1/Antwort2/Antwort3*
 ```
-→ Lädt QUICK_REFERENCE.md
 
 ---
 
-## 📚 Dokumentation
+## 📚 Dokumentation pro Skill
 
-**Alle Skills dokumentiert in:**
-```
-C:\Users\mail\OneDrive\Dokumente\EigeneProjekte\dev\claude-skills\
-
-blog-article-workflow\
-├── SKILL.md              → Kompletter Workflow
-├── QUICK_REFERENCE.md    → Schnell-Referenz
-└── workflows\
-    └── images-and-media.md → Bild-Integration
-
-h5p-wordpress-workflow\
-└── SKILL.md              → H5P Workflow
-```
+| Skill | Hauptdatei | Referenzen |
+|-------|------------|------------|
+| blog-article-workflow | SKILL.md | workflows/, examples/ |
+| h5p-wordpress-workflow | SKILL.md | references/h5p-content-types.md |
+| h5p-generator | SKILL.md | scripts/h5p_generator.py, references/h5p-json-structure.md |
+| recherche-workflow | SKILL.md | - |
+| bswi-infobrief | SKILL.md | - |
 
 ---
 
@@ -277,25 +322,28 @@ h5p-wordpress-workflow\
 - [ ] Test-Prompt ausgeführt
 - [ ] blog-article-workflow triggert
 - [ ] h5p-wordpress-workflow triggert
+- [ ] h5p-generator triggert ⭐
 - [ ] MCP WordPress Tools verfügbar
-- [ ] Ersten Artikel erstellt
+- [ ] Ersten Artikel/H5P erstellt
 
 **Alles ✅? Glückwunsch! Skills sind aktiv! 🎉**
 
 ---
 
-## 🆘 Support
+## 🆕 Changelog
 
-**Fragen? Probleme?**
-1. Check Troubleshooting-Sektion oben
-2. Überprüfe Skills-Verzeichnis
-3. Test mit einfachem Prompt
+### 2026-01-10
+- ⭐ **NEU:** h5p-generator Skill hinzugefügt
+  - Erstellt .h5p-Dateien direkt aus Python
+  - Unterstützt: True/False, Multiple Choice, Fill in Blanks, Drag & Drop
+  - Batch-Erstellung möglich
 
-**Feedback:**
-Skills funktionieren gut? Verbesserungsvorschläge?
-→ Dokumentiere in claude-skills/FEEDBACK.md
+### 2026-01-03
+- Initial Release
+- blog-article-workflow
+- h5p-wordpress-workflow
 
 ---
 
-*Zuletzt aktualisiert: 03.01.2026*
-*Version: 1.0*
+*Zuletzt aktualisiert: 10.01.2026*
+*Version: 1.1*
