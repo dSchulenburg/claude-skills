@@ -1,6 +1,8 @@
 ---
 name: moodle-section-optimizer
 description: Optimiert Moodle-Kursabschnitte basierend auf 4K-Analyse. Erstellt Labels mit Bildern, generiert H5P-Inhalte, fügt Struktur-Elemente hinzu. Nutze nach moodle-section-analyzer oder wenn konkrete Verbesserungen umgesetzt werden sollen.
+license: MIT
+agent: Education
 ---
 
 # Moodle Section Optimizer

@@ -2,6 +2,7 @@
 name: docker-management
 description: Manage Docker containers on the Hetzner server. Check status, view logs, restart services, and troubleshoot container issues via SSH.
 license: MIT
+agent: DevOps
 ---
 
 # Docker Management

@@ -2,6 +2,7 @@
 name: mcp-server-deploy
 description: Deploy MCP servers from local development to production via Git and Docker. Handles code push, SSH deployment, container rebuild, and health verification.
 license: MIT
+agent: DevOps
 ---
 
 # MCP Server Deployment Workflow

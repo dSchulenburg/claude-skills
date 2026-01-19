@@ -2,6 +2,7 @@
 name: recherche-workflow
 description: Research workflow for finding well-substantiated contrarian positions. Specialized in anarchist theory, stigmergy, grassroots movements, guerilla gardening, and alternative media. Use when researching topics that benefit from non-mainstream perspectives with academic rigor.
 license: MIT
+agent: Personal
 tools:
   - WebSearch
   - WebFetch

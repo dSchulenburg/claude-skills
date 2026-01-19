@@ -1,6 +1,8 @@
 ---
 name: moodle-section-analyzer
 description: Analysiert Moodle-Kursabschnitte auf 4K-Defizite (Kreativität, Kritisches Denken, Kommunikation, Kollaboration), fehlende Interaktivität und Multimedia-Lücken. Gibt konkrete Optimierungsvorschläge mit H5P-Empfehlungen. Nutze wenn Lehrer einen Kurs modernisieren, mehr Engagement erreichen oder didaktisch aufwerten wollen.
+license: MIT
+agent: Education
 ---
 
 # Moodle Section Analyzer

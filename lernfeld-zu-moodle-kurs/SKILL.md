@@ -5,6 +5,7 @@ description: |
   Use when: Lehrer möchte Unterrichtsmaterial in Moodle-Kursstruktur umwandeln,
   Lernfelder/Lernsituationen digitalisieren, oder bestehende Kurse als Template nutzen.
 license: MIT
+agent: Education
 tools:
   - moodle:moodle_create_course
   - moodle:moodle_create_section

@@ -2,6 +2,7 @@
 name: moodle-course-workflow
 description: Complete workflow for creating Moodle courses with H5P content integration from WordPress. Use when creating educational courses, adding interactive H5P modules to Moodle, or automating course deployment.
 license: MIT
+agent: Education
 ---
 
 # Moodle Course Creation Workflow

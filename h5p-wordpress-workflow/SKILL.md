@@ -2,6 +2,7 @@
 name: h5p-wordpress-workflow
 description: Complete workflow for creating and publishing H5P interactive content to WordPress. Use when users want to create interactive educational content (quizzes, videos, presentations), integrate H5P with WordPress, or automate H5P content publishing workflows with MCP servers.
 license: MIT
+agent: Education
 ---
 
 # H5P + WordPress Workflow

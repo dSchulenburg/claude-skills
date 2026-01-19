@@ -1,6 +1,8 @@
 ---
 name: h5p-generator
 description: Generate H5P interactive content files (.h5p) programmatically using Python. Supports 9 content types with error handling, styling themes, and batch creation. Use for quizzes, flashcards, drag-and-drop, and more.
+license: MIT
+agent: Education
 ---
 
 # H5P Generator v2.0

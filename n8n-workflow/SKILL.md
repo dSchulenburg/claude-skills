@@ -2,6 +2,7 @@
 name: n8n-workflow
 description: Create, debug, and manage n8n workflows. Use for building automations, analyzing workflow executions, fixing errors, and optimizing performance.
 license: MIT
+agent: DevOps
 ---
 
 # n8n Workflow Management
