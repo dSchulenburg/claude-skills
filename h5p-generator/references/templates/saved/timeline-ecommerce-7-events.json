@@ -1,0 +1,113 @@
+{
+  "name": "timeline-ecommerce-7-events",
+  "content_type": "Timeline",
+  "created": "2026-01-24T18:46:01.772284",
+  "notes": "embedTypes=div, TimelineJS dependency, nur Jahreszahlen",
+  "h5p_meta": {
+    "title": "Geschichte des Online-Handels",
+    "language": "de",
+    "mainLibrary": "H5P.Timeline",
+    "embedTypes": [
+      "div"
+    ],
+    "license": "CC BY",
+    "preloadedDependencies": [
+      {
+        "machineName": "H5P.Timeline",
+        "majorVersion": 1,
+        "minorVersion": 1
+      },
+      {
+        "machineName": "TimelineJS",
+        "majorVersion": 1,
+        "minorVersion": 1
+      }
+    ]
+  },
+  "content_structure": {
+    "timeline": {
+      "headline": "Geschichte des Online-Handels",
+      "text": "<p>Die Entwicklung des E-Commerce von 1994 bis heute</p>",
+      "date": [
+        {
+          "headline": "Amazon gegründet",
+          "text": "<p>Jeff Bezos gründet Amazon als Online-Buchhandlung.</p>",
+          "startDate": "1994",
+          "endDate": "1994",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "eBay startet",
+          "text": "<p>Pierre Omidyar gründet eBay als Auktionsplattform.</p>",
+          "startDate": "1995",
+          "endDate": "1995",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "PayPal gegründet",
+          "text": "<p>Sicheres Online-Bezahlen wird möglich.</p>",
+          "startDate": "1998",
+          "endDate": "1998",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "Zalando startet",
+          "text": "<p>Deutscher Online-Modehändler gegründet.</p>",
+          "startDate": "2008",
+          "endDate": "2008",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "Mobile Commerce",
+          "text": "<p>Smartphones revolutionieren das Einkaufen.</p>",
+          "startDate": "2010",
+          "endDate": "2010",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "Same-Day Delivery",
+          "text": "<p>Amazon Prime Now bietet Lieferung am selben Tag.</p>",
+          "startDate": "2015",
+          "endDate": "2015",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        },
+        {
+          "headline": "Corona-Boom",
+          "text": "<p>Pandemie beschleunigt Online-Handel massiv.</p>",
+          "startDate": "2020",
+          "endDate": "2020",
+          "asset": {
+            "media": "",
+            "credit": ""
+          }
+        }
+      ],
+      "era": [],
+      "asset": {
+        "media": "",
+        "credit": ""
+      },
+      "defaultZoomLevel": 0,
+      "height": 600,
+      "language": "de"
+    }
+  }
+}

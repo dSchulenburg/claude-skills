@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "description": "Funktionierende Drag & Drop Konfiguration (v13 Referenz)",
+    "source": "02-scrum-rollen-v13.h5p",
+    "validated": "2026-01-24"
+  },
+  "canvas": {
+    "width": 620,
+    "height": 450
+  },
+  "draggables": {
+    "width_short": 6,
+    "width_medium": 7,
+    "width_long": 8,
+    "height": 2,
+    "backgroundOpacity": 80,
+    "font_style": "text-align:center;margin:0;font-size:12px;font-weight:bold;",
+    "spacing": {
+      "items_per_row": 5,
+      "h_gap": 1.5,
+      "v_gap": 0.8,
+      "start_x": 2,
+      "start_y": 2
+    },
+    "text_length_to_width": {
+      "0-12": 6,
+      "13-18": 7,
+      "19+": 8
+    }
+  },
+  "dropzones": {
+    "width": 10,
+    "height": 73,
+    "y": 22,
+    "backgroundOpacity": 70,
+    "font_style": "text-align:center;font-weight:bold;font-size:14px;",
+    "positions_by_count": {
+      "2": [10, 55],
+      "3": [3, 37, 71],
+      "4": [2, 26, 50, 74],
+      "5": [2, 20, 38, 56, 74]
+    }
+  },
+  "behaviour": {
+    "enableRetry": true,
+    "enableCheckButton": true,
+    "showSolutionsRequiresInput": true,
+    "singlePoint": false,
+    "applyPenalties": false,
+    "enableScoreExplanation": true,
+    "dropZoneHighlighting": "dragging",
+    "autoAlignSpacing": 2,
+    "enableFullScreen": false,
+    "showScorePoints": true,
+    "showTitle": true
+  }
+}

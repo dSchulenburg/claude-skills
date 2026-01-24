@@ -1,0 +1,133 @@
+{
+  "name": "memory-obst-8-paare",
+  "content_type": "MemoryGame",
+  "created": "2026-01-24T18:46:01.769887",
+  "notes": "Funktioniert mit Unsplash-Bildern, 8 Paare = 16 Felder",
+  "h5p_meta": {
+    "title": "Obstsorten Memory",
+    "language": "de",
+    "mainLibrary": "H5P.MemoryGame",
+    "embedTypes": [
+      "iframe"
+    ],
+    "license": "CC BY",
+    "preloadedDependencies": [
+      {
+        "machineName": "H5P.MemoryGame",
+        "majorVersion": 1,
+        "minorVersion": 3
+      }
+    ]
+  },
+  "content_structure": {
+    "cards": [
+      {
+        "description": "Apfel",
+        "imageAlt": "Apfel",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1568702846914-96b305d2uj29?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Banane",
+        "imageAlt": "Banane",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Orange",
+        "imageAlt": "Orange",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1547514701-42782101795e?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Erdbeere",
+        "imageAlt": "Erdbeere",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Kirsche",
+        "imageAlt": "Kirsche",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Weintraube",
+        "imageAlt": "Weintraube",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Ananas",
+        "imageAlt": "Ananas",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      },
+      {
+        "description": "Mango",
+        "imageAlt": "Mango",
+        "image": {
+          "path": "https://images.unsplash.com/photo-1553279768-865429fa0078?w=300&h=300&fit=crop",
+          "mime": "image/jpeg",
+          "copyright": {
+            "license": "U"
+          }
+        }
+      }
+    ],
+    "behaviour": {
+      "useGrid": true,
+      "allowRetry": true
+    },
+    "l10n": {
+      "cardTurns": "Züge",
+      "timeSpent": "Zeit",
+      "feedback": "Gut gemacht!",
+      "tryAgain": "Nochmal",
+      "closeLabel": "Schließen",
+      "label": "Memory: Obstsorten Memory",
+      "done": "Alle Paare gefunden!",
+      "cardPrefix": "Karte %num:",
+      "cardUnturned": "Nicht umgedreht.",
+      "cardMatched": "Paar gefunden."
+    },
+    "lookNFeel": {
+      "themeColor": "#4caf50"
+    }
+  }
+}

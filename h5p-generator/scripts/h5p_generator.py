@@ -645,27 +645,37 @@ class DragDropGenerator(H5PGenerator):
             # Canvas
             # =================================================================
             canvas_width = 620
-            canvas_height = 400
+            canvas_height = 450  # Match v13 reference
 
             # =================================================================
-            # DRAGGABLES: Etwas groesser, gutes Verhaeltnis
+            # DRAGGABLES: Based on working v13 reference
+            # Width 6-8 depending on text length, height 2
             # =================================================================
             h5p_draggables = []
 
-            item_width = 3.5    # Etwas groesser
-            item_height = 2     # Etwas groesser
             items_per_row = 5
-            h_gap = 0.8
+            h_gap = 1.5
             v_gap = 0.8
-
             start_x = 2
+            start_y = 2
 
             for i, drag in enumerate(draggables):
                 row = i // items_per_row
                 col = i % items_per_row
 
-                x_pos = start_x + col * (item_width + h_gap)
-                y_pos = 2 + row * (item_height + v_gap)
+                # Calculate width based on text length (6-8 range)
+                text_len = len(drag['text'])
+                if text_len <= 12:
+                    item_width = 6
+                elif text_len <= 18:
+                    item_width = 7
+                else:
+                    item_width = 8
+
+                item_height = 2
+
+                x_pos = start_x + col * (8 + h_gap)  # Use max width for spacing
+                y_pos = start_y + row * (item_height + v_gap)
 
                 h5p_draggables.append({
                     "x": round(x_pos, 2),
@@ -676,35 +686,39 @@ class DragDropGenerator(H5PGenerator):
                     "type": {
                         "library": "H5P.AdvancedText 1.1",
                         "params": {
-                            "text": f"<p style='margin:0;font-size:11px;'>{drag['text']}</p>"
+                            "text": f"<p style='text-align:center;margin:0;font-size:12px;font-weight:bold;'>{drag['text']}</p>"
                         },
                         "subContentId": f"drag-{i}",
                         "metadata": {"contentType": "Text", "license": "U", "title": drag['text']}
                     },
-                    "backgroundOpacity": 100,
+                    "backgroundOpacity": 80,
                     "multiple": False
                 })
 
             # =================================================================
-            # DROPZONES: Feste Positionen mit grossem Abstand
+            # DROPZONES: Based on working v13 reference
+            # Fixed positions: x=3,37,71 for 3 zones, width=10, height=73
             # =================================================================
             num_zones = len(dropzones)
 
-            zone_height = 6    # Klein
-            zone_y = 80        # Ganz unten
-            zone_width = 5     # Sehr schmal!
+            zone_height = 73   # Tall dropzones (v13 reference)
+            zone_y = 22        # Start below draggables (v13 reference)
+            zone_width = 10    # Wide enough for content (v13 reference)
 
-            # Feste X-Positionen mit grossen Abstaenden
-            # Bei 3 Zonen: 10%, 45%, 80%
-            if num_zones == 3:
-                zone_positions = [10, 45, 80]
-            elif num_zones == 2:
-                zone_positions = [20, 65]
+            # Fixed X-positions based on number of zones (v13 pattern)
+            # These create non-overlapping zones on a 620px canvas
+            if num_zones == 2:
+                zone_positions = [10, 55]
+            elif num_zones == 3:
+                zone_positions = [3, 37, 71]  # v13 reference values
             elif num_zones == 4:
-                zone_positions = [5, 30, 55, 80]
+                zone_positions = [2, 26, 50, 74]
+            elif num_zones == 5:
+                zone_positions = [2, 20, 38, 56, 74]
             else:
-                # Gleichmaessig verteilen
-                zone_positions = [int(10 + i * (80 / max(1, num_zones - 1))) for i in range(num_zones)]
+                # Distribute evenly for other counts
+                spacing = 90 // max(1, num_zones)
+                zone_positions = [3 + i * spacing for i in range(num_zones)]
 
             zone_colors = ["#e3f2fd", "#fce4ec", "#e8f5e9", "#fff8e1", "#f3e5f5", "#e0f7fa"]
 
@@ -720,11 +734,11 @@ class DragDropGenerator(H5PGenerator):
                     "height": zone_height,
                     "correctElements": [],
                     "showLabel": True,
-                    "backgroundOpacity": 100,
+                    "backgroundOpacity": 70,
                     "tipsAndFeedback": {"tip": ""},
                     "single": False,
                     "autoAlign": True,
-                    "label": f"<div style='text-align:center;font-weight:bold;font-size:10px;background:{bg_color};border:2px dashed #888;border-radius:4px;'>{dz}</div>"
+                    "label": f"<div style='text-align:center;font-weight:bold;font-size:14px;'>{dz}</div>"
                 })
 
             # Weise Draggables den Dropzones zu
@@ -932,8 +946,8 @@ class DialogCardsGenerator(H5PGenerator):
             h5p_cards = []
             for c in cards:
                 card = {
-                    "text": f"<p>{c['front']}</p>",
-                    "answer": f"<p>{c['back']}</p>"
+                    "text": f"<p style=\"text-align:center;\">{c['front']}</p>",
+                    "answer": f"<p style=\"text-align:center;\">{c['back']}</p>"
                 }
                 if c.get('tip'):
                     card["tips"] = [{"text": c['tip']}]
@@ -1106,7 +1120,7 @@ class SummaryGenerator(H5PGenerator):
             h5p_summaries = []
             for item in summary_items:
                 h5p_summaries.append({
-                    "summary": [{"text": f"<p>{s}</p>"} for s in item['statements']],
+                    "summary": [f"<p>{s}</p>\n" for s in item['statements']],  # Must be strings, not objects!
                     "tip": item.get('tip', '')
                 })
 
@@ -1228,6 +1242,300 @@ class AccordionGenerator(H5PGenerator):
 
 
 # =============================================================================
+# NEW: Drag the Words Generator (v2.1)
+# =============================================================================
+
+class DragTextGenerator(H5PGenerator):
+    """Generator für 'Drag the Words' - Wörter in Lücken ziehen"""
+
+    def create(self, title: str, text_with_blanks: str, output_name: str = None,
+               task_description: str = "Ziehe die Wörter an die richtige Stelle.") -> H5PResult:
+        """
+        Erstellt eine Drag the Words Aufgabe
+
+        Args:
+            title: Titel
+            text_with_blanks: Text mit *Lücken* markiert
+                Beispiel: "Die *Hauptstadt* von Deutschland ist *Berlin*."
+            task_description: Aufgabenstellung
+            output_name: Dateiname
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_not_empty(text_with_blanks, "Text")
+
+            if '*' not in text_with_blanks:
+                raise H5PValidationError("Text enthält keine Lücken (markiere mit *Wort*)")
+
+            blanks_count = text_with_blanks.count('*') // 2
+            if blanks_count < 1:
+                raise H5PValidationError("Text muss mindestens eine Lücke enthalten")
+
+            if not output_name:
+                output_name = f"dragtext_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            content = {
+                "taskDescription": f"<p>{task_description}</p>",
+                "textField": text_with_blanks,
+                "overallFeedback": [
+                    {"from": 0, "to": 50, "feedback": self.style.feedback_wrong},
+                    {"from": 51, "to": 80, "feedback": self.style.feedback_partial},
+                    {"from": 81, "to": 100, "feedback": self.style.feedback_correct}
+                ],
+                "checkAnswer": "Prüfen",
+                "tryAgain": "Nochmal",
+                "showSolution": "Lösung anzeigen",
+                "dropZoneIndex": "Lücke @index.",
+                "empty": "Lücke @index ist leer.",
+                "contains": "Lücke @index enthält @draggable.",
+                "ariaDraggableIndex": "@index von @count ziehbare Elemente.",
+                "tipLabel": "Tipp anzeigen",
+                "correctText": "Richtig!",
+                "incorrectText": "Falsch!",
+                "resetDropTitle": "Zurücksetzen",
+                "resetDropDescription": "Bist du sicher?",
+                "grabbed": "Gezogen.",
+                "cancelledDragging": "Ziehen abgebrochen.",
+                "correctAnswer": "Richtige Antwort:",
+                "behaviour": {
+                    "enableRetry": True,
+                    "enableSolutionsButton": True,
+                    "enableCheckButton": True,
+                    "instantFeedback": False
+                }
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.DragText",
+                [{"machineName": "H5P.DragText", "majorVersion": 1, "minorVersion": 10}]
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="DragText", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="DragText", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="DragText", title=title)
+
+
+# =============================================================================
+# NEW: Timeline Generator (v2.1)
+# =============================================================================
+
+class TimelineGenerator(H5PGenerator):
+    """Generator für Zeitleisten/Timelines"""
+
+    def create(self, title: str, events: List[Dict], output_name: str = None,
+               description: str = "") -> H5PResult:
+        """
+        Erstellt eine Timeline
+
+        Args:
+            title: Titel der Timeline
+            events: Liste von Dicts mit:
+                - headline: Überschrift des Events
+                - text: Beschreibung
+                - start_date: Startdatum als String (z.B. "2020", "2020-03", "2020-03-15")
+                - end_date: Optional, Enddatum
+                - media: Optional, URL zu Bild/Video
+            description: Optionale Gesamtbeschreibung
+            output_name: Dateiname
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_list(events, "Events", min_items=1)
+
+            for i, e in enumerate(events):
+                if 'headline' not in e:
+                    raise H5PValidationError(f"Event {i+1}: 'headline' fehlt")
+                if 'start_date' not in e:
+                    raise H5PValidationError(f"Event {i+1}: 'start_date' fehlt")
+
+            if not output_name:
+                output_name = f"timeline_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            # Build timeline events
+            # Note: startDate must be a STRING with just the year!
+            timeline_events = []
+            for e in events:
+                # Extract just the year from date string
+                date_str = str(e['start_date'])
+                start_year = date_str.split('-')[0] if '-' in date_str else date_str
+
+                event = {
+                    "headline": e['headline'],
+                    "text": f"<p>{e.get('text', '')}</p>",
+                    "startDate": start_year,  # Just the year as string
+                    "endDate": start_year,    # Required field
+                    "asset": {
+                        "media": e.get('media', ''),
+                        "credit": e.get('credit', '')
+                    }
+                }
+                if e.get('end_date'):
+                    end_str = str(e['end_date'])
+                    event["endDate"] = end_str.split('-')[0] if '-' in end_str else end_str
+
+                timeline_events.append(event)
+
+            # Build content structure matching official h5p.org format exactly
+            content = {
+                "timeline": {
+                    "headline": title,
+                    "text": f"<p>{description}</p>" if description else "<p></p>",
+                    "date": timeline_events,
+                    "era": [],
+                    "asset": {
+                        "media": "",
+                        "credit": ""
+                    },
+                    "defaultZoomLevel": 0,
+                    "height": 600,
+                    "language": "de"
+                }
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+
+            # Timeline needs special h5p.json with div embedType and TimelineJS dependency
+            h5p_meta = {
+                "title": title,
+                "language": "de",
+                "mainLibrary": "H5P.Timeline",
+                "embedTypes": ["div"],  # Timeline requires div, not iframe!
+                "license": "CC BY",
+                "preloadedDependencies": [
+                    {"machineName": "H5P.Timeline", "majorVersion": 1, "minorVersion": 1},
+                    {"machineName": "TimelineJS", "majorVersion": 1, "minorVersion": 1}
+                ]
+            }
+            self._write_json(temp_dir / "h5p.json", h5p_meta)
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="Timeline", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="Timeline", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="Timeline", title=title)
+
+
+# =============================================================================
+# NEW: Memory Game Generator (v2.1)
+# =============================================================================
+
+class MemoryGameGenerator(H5PGenerator):
+    """Generator für Memory-Spiele"""
+
+    def create(self, title: str, cards: List[Dict], output_name: str = None) -> H5PResult:
+        """
+        Erstellt ein Memory-Spiel
+
+        Args:
+            title: Titel
+            cards: Liste von Dicts mit:
+                - image: URL oder Pfad zum Bild
+                - description: Beschreibung des Bildes
+                - match_image: Optional, anderes Bild für das Paar
+            output_name: Dateiname
+
+        Returns:
+            H5PResult
+
+        Note:
+            Benötigt Bilder. Für text-basiertes Memory siehe Flashcards.
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_list(cards, "Karten", min_items=2)
+
+            for i, c in enumerate(cards):
+                if 'image' not in c and 'description' not in c:
+                    raise H5PValidationError(f"Karte {i+1}: 'image' oder 'description' fehlt")
+
+            if not output_name:
+                output_name = f"memory_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            # Build memory cards
+            memory_cards = []
+            for i, c in enumerate(cards):
+                card = {
+                    "description": c.get('description', f'Karte {i+1}'),
+                    "imageAlt": c.get('description', f'Karte {i+1}')
+                }
+                if c.get('image'):
+                    card["image"] = {
+                        "path": c['image'],
+                        "mime": "image/jpeg",
+                        "copyright": {"license": "U"}
+                    }
+                memory_cards.append(card)
+
+            content = {
+                "cards": memory_cards,
+                "behaviour": {
+                    "useGrid": True,
+                    "allowRetry": True
+                },
+                "l10n": {
+                    "cardTurns": "Züge",
+                    "timeSpent": "Zeit",
+                    "feedback": "Gut gemacht!",
+                    "tryAgain": "Nochmal",
+                    "closeLabel": "Schließen",
+                    "label": f"Memory: {title}",
+                    "done": "Alle Paare gefunden!",
+                    "cardPrefix": "Karte %num:",
+                    "cardUnturned": "Nicht umgedreht.",
+                    "cardMatched": "Paar gefunden."
+                },
+                "lookNFeel": {
+                    "themeColor": self.style.primary_color
+                }
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.MemoryGame",
+                [{"machineName": "H5P.MemoryGame", "majorVersion": 1, "minorVersion": 3}]
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="MemoryGame", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="MemoryGame", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="MemoryGame", title=title)
+
+
+# =============================================================================
 # Convenience Functions
 # =============================================================================
 
@@ -1302,6 +1610,28 @@ def create_accordion(title: str, panels: List[Dict], output_name: str = None,
     return gen.create(title, panels, output_name)
 
 
+def create_drag_text(title: str, text: str, output_name: str = None,
+                     task: str = "Ziehe die Wörter an die richtige Stelle.",
+                     style: H5PStyle = None) -> H5PResult:
+    """Erstellt eine 'Drag the Words' Aufgabe - Wörter in Lücken ziehen"""
+    gen = DragTextGenerator(style=style)
+    return gen.create(title, text, output_name, task)
+
+
+def create_timeline(title: str, events: List[Dict], output_name: str = None,
+                    description: str = "", style: H5PStyle = None) -> H5PResult:
+    """Erstellt eine Timeline/Zeitleiste"""
+    gen = TimelineGenerator(style=style)
+    return gen.create(title, events, output_name, description)
+
+
+def create_memory_game(title: str, cards: List[Dict], output_name: str = None,
+                       style: H5PStyle = None) -> H5PResult:
+    """Erstellt ein Memory-Spiel (benötigt Bilder)"""
+    gen = MemoryGameGenerator(style=style)
+    return gen.create(title, cards, output_name)
+
+
 # =============================================================================
 # Batch Generation
 # =============================================================================
@@ -1332,6 +1662,9 @@ def batch_create(content_list: List[Dict], style: H5PStyle = None) -> List[H5PRe
         'mark_words': ('text', create_mark_words),
         'summary': ('items', create_summary),
         'accordion': ('panels', create_accordion),
+        'drag_text': ('text', create_drag_text),
+        'timeline': ('events', create_timeline),
+        'memory_game': ('cards', create_memory_game),
     }
 
     for item in content_list:

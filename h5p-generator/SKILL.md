@@ -5,9 +5,65 @@ license: MIT
 agent: Education
 ---
 
-# H5P Generator v2.0
+# H5P Generator v2.2
 
 Generate .h5p files directly from Python with robust error handling and customizable styling.
+
+## Supported Content Types (12)
+
+| Type | Function | Use Case |
+|------|----------|----------|
+| **True/False** | `create_true_false()` | Wahr/Falsch Quizze |
+| **Multiple Choice** | `create_multi_choice()` | MC-Fragen mit 2+ Optionen |
+| **Fill in Blanks** | `create_fill_blanks()` | Lückentexte mit `*Lücke*` |
+| **Drag and Drop** | `create_drag_drop()` | Zuordnungsaufgaben (Kategorien) |
+| **Drag the Words** | `create_drag_text()` | Wörter in Lücken ziehen |
+| **Single Choice** | `create_single_choice()` | Schnelle Single-Choice |
+| **Flashcards** | `create_flashcards()` | Lernkarten (Dialog Cards) |
+| **Mark Words** | `create_mark_words()` | Wörter im Text markieren |
+| **Summary** | `create_summary()` | Zusammenfassungen |
+| **Accordion** | `create_accordion()` | Aufklappbare Abschnitte |
+| **Timeline** | `create_timeline()` | Zeitleisten mit Events |
+| **Memory Game** | `create_memory_game()` | Memory (benötigt Bilder) |
+
+## Entscheidungsmatrix (Wann welcher Typ?)
+
+Siehe `references/templates/decision-matrix.md` für die vollständige Logik.
+
+| Lernziel | Operator | H5P-Typ |
+|----------|----------|---------|
+| Begriffe lernen | nennen | Flashcards |
+| Fakten prüfen | beschreiben | True-False |
+| Kategorien | zuordnen | Drag-and-Drop |
+| Lücken füllen | ergänzen | Fill-in-Blanks oder Drag-Text |
+| Chronologie | ordnen | Timeline |
+| Zusammenhänge | erklären | Accordion |
+| Optionen | bewerten | Branching (manuell) |
+
+**Didaktische Regel:** Gamification-Typen (Flashcards, Drag&Drop, Memory) nur unterstützend einsetzen, nicht als Hauptlernform auf IHK/Abitur-Niveau.
+
+## Agent Workflow (NEU v2.2)
+
+Der H5P Agent automatisiert die Content-Type-Wahl und lernt aus Feedback:
+
+```python
+from agent_workflow import H5PAgent
+
+agent = H5PAgent()
+
+# Automatische Entscheidung
+decision = agent.decide_content_type("Ordne die Begriffe zu")
+# → drag_drop (80% Konfidenz)
+
+# Generieren mit Validierung
+result, issues = agent.generate_with_validation('drag_drop', ...)
+
+# Preview und Feedback
+agent.preview(result.path)
+agent.save_as_template(result, "name")
+```
+
+Siehe `AGENT_WORKFLOW.md` für vollständige Dokumentation.
 
 ## Supported Content Types (9)
 
@@ -229,6 +285,47 @@ panels = [
 create_accordion("Lerneinheit", panels, "lerneinheit")
 ```
 
+### 10. Drag the Words (NEU v2.2)
+
+Ähnlich wie Fill-in-Blanks, aber Wörter werden gezogen statt getippt:
+
+```python
+text = "In *Scrum* arbeitet das Team in *Sprints*. Der *Product Owner* priorisiert."
+create_drag_text(
+    "Agile Begriffe",
+    text,
+    "agile-dragtext",
+    task="Ziehe die Begriffe an die richtige Stelle."
+)
+```
+
+### 11. Timeline (NEU v2.2)
+
+Zeitleiste mit chronologischen Events:
+
+```python
+events = [
+    {"headline": "ARPANET", "start_date": "1969", "text": "Erstes Netzwerk"},
+    {"headline": "World Wide Web", "start_date": "1991", "text": "Tim Berners-Lee"},
+    {"headline": "Google", "start_date": "1998-09", "text": "Suchmaschine gestartet"},
+]
+create_timeline("Internet-Geschichte", events, "internet-timeline")
+```
+
+Datumsformate: `"2020"`, `"2020-03"`, oder `"2020-03-15"`
+
+### 12. Memory Game (NEU v2.2)
+
+Memory-Spiel (benötigt Bilder für volle Funktion):
+
+```python
+cards = [
+    {"description": "Scrum Master", "image": "https://example.com/sm.jpg"},
+    {"description": "Product Owner", "image": "https://example.com/po.jpg"},
+]
+create_memory_game("Scrum-Rollen Memory", cards, "scrum-memory")
+```
+
 ## Batch-Erstellung
 
 Mehrere H5P-Dateien auf einmal erstellen:
@@ -281,15 +378,56 @@ Bei Fehlern wird ein `H5PResult` mit `success=False` und Fehlerbeschreibung zur�
 
 Der vollständige Generator: `scripts/h5p_generator.py`
 
+## Template-Bibliothek
+
+Validierte JSON-Templates für konsistente Ergebnisse:
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `references/templates/decision-matrix.md` | Wann welcher Content-Type |
+| `references/templates/dragdrop-working.json` | Funktionierende Drag&Drop-Werte |
+| `references/templates/all-types.json` | JSON-Strukturen aller Typen |
+| `references/h5p-json-structure.md` | Technische Referenz |
+
+## Beispiel-Bibliothek
+
+Offizielle h5p.org Beispiele in `examples/h5p/`:
+- `drag-and-drop-712.h5p` - Drag & Drop Referenz
+- `fill-in-the-blanks-837.h5p` - Lückentext
+- `dialog-cards-620.h5p` - Flashcards
+- `single-choice-set-1515.h5p` - Single Choice
+- ... und 30+ weitere
+
 ## Limitations
 
 - **Image Hotspots**: Nicht unterstützt (Web-Editor nutzen)
-- **Branching Scenario**: Zu komplex
+- **Branching Scenario**: Zu komplex (manuell erstellen)
 - **Interactive Video**: Benötigt Video-Dateien
-- **Course Presentation**: Zu komplex
+- **Course Presentation**: Zu komplex (manuell erstellen)
+- **Interactive Book**: Manuell in H5P-Editor erstellen
 
-Für diese: H5P in WordPress/Moodle direkt erstellen.
+Für komplexe Typen: H5P in WordPress/Moodle direkt erstellen.
+
+## Changelog
+
+### v2.2 (2026-01-24)
+- **Neu:** Drag the Words (`create_drag_text()`) - Wörter in Lücken ziehen
+- **Neu:** Timeline (`create_timeline()`) - Zeitleisten mit Events
+- **Neu:** Memory Game (`create_memory_game()`) - Memory-Spiel
+- **Gesamt:** 12 Content-Typen unterstützt
+
+### v2.1 (2026-01-24)
+- **Fix:** Drag & Drop Positionierung korrigiert (war außerhalb Canvas)
+- **Neu:** Dynamische Draggable-Breite nach Textlänge
+- **Neu:** Entscheidungsmatrix für Content-Type-Wahl
+- **Neu:** Template-Bibliothek mit validierten JSON-Strukturen
+- **Neu:** 33 Beispiel-H5P-Dateien als Referenz
+
+### v2.0
+- Fehlerbehandlung mit H5PResult
+- Themes und Styling
+- 5 neue Content-Types (Single Choice, Flashcards, Mark Words, Summary, Accordion)
 
 ---
 
-*Version 2.0 - Mit Fehlerbehandlung, Themes, und 5 neuen Content-Types*
+*Version 2.2 - 12 Content-Typen mit Template-Bibliothek*

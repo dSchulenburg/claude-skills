@@ -1,0 +1,168 @@
+{
+  "_meta": {
+    "description": "Template-Bibliothek für alle H5P Content-Typen",
+    "source": "h5p.org official examples + UBC examples",
+    "validated": "2026-01-24"
+  },
+
+  "fill-in-blanks": {
+    "library": "H5P.Blanks 1.14",
+    "structure": {
+      "questions": ["<p>Text with *blank* words.</p>"],
+      "text": "<p>Instructions for the learner.</p>",
+      "behaviour": {
+        "caseSensitive": false,
+        "acceptSpellingErrors": true,
+        "showSolutionsRequiresInput": true,
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "enableCheckButton": true
+      }
+    },
+    "blank_syntax": {
+      "single": "*answer*",
+      "alternatives": "*answer1/answer2*",
+      "tip": "*answer:tip text*"
+    }
+  },
+
+  "dialog-cards": {
+    "library": "H5P.Dialogcards 1.9",
+    "structure": {
+      "title": "<p>Card Set Title</p>",
+      "description": "<p>Instructions</p>",
+      "dialogs": [
+        {
+          "text": "<p style='text-align:center;'>Front side</p>",
+          "answer": "<p style='text-align:center;'>Back side</p>",
+          "tips": {}
+        }
+      ],
+      "behaviour": {
+        "enableRetry": true,
+        "disableBackwardsNavigation": false,
+        "scaleTextNotCard": false,
+        "randomCards": false,
+        "maxProficiency": 5
+      }
+    }
+  },
+
+  "single-choice-set": {
+    "library": "H5P.SingleChoiceSet 1.11",
+    "structure": {
+      "choices": [
+        {
+          "question": "Question text?",
+          "answers": ["Correct answer", "Wrong 1", "Wrong 2"]
+        }
+      ],
+      "behaviour": {
+        "timeoutCorrect": 1000,
+        "timeoutWrong": 1000,
+        "soundEffectsEnabled": false,
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "passPercentage": 60
+      }
+    },
+    "note": "First answer is always correct"
+  },
+
+  "true-false": {
+    "library": "H5P.TrueFalse 1.8",
+    "structure": {
+      "question": "<p>Statement to evaluate</p>",
+      "correct": "true",
+      "l10n": {
+        "trueText": "Wahr",
+        "falseText": "Falsch"
+      },
+      "feedbackOnCorrect": "Richtig! Erklärung...",
+      "feedbackOnWrong": "Falsch. Die richtige Antwort ist..."
+    },
+    "note": "correct value is STRING 'true' or 'false'"
+  },
+
+  "mark-the-words": {
+    "library": "H5P.MarkTheWords 1.11",
+    "structure": {
+      "taskDescription": "<p>Click the correct words!</p>",
+      "textField": "Text with *correct* words marked with *asterisks*.",
+      "behaviour": {
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "enableCheckButton": true,
+        "showScorePoints": true
+      }
+    },
+    "mark_syntax": "*word*"
+  },
+
+  "summary": {
+    "library": "H5P.Summary 1.10",
+    "structure": {
+      "intro": "<p>Choose the correct statement.</p>",
+      "summaries": [
+        {
+          "summary": [
+            "<p>Correct statement (first)</p>",
+            "<p>Wrong statement 1</p>",
+            "<p>Wrong statement 2</p>"
+          ],
+          "tip": "Optional hint"
+        }
+      ]
+    },
+    "note": "First statement in each summary is correct"
+  },
+
+  "accordion": {
+    "library": "H5P.Accordion 1.0",
+    "dependencies": ["H5P.AdvancedText 1.1", "FontAwesome 4.5"],
+    "structure": {
+      "panels": [
+        {
+          "title": "Section Title",
+          "content": {
+            "params": {"text": "<p>Content here</p>"},
+            "library": "H5P.AdvancedText 1.1"
+          }
+        }
+      ],
+      "hTag": "h2"
+    }
+  },
+
+  "question-set": {
+    "library": "H5P.QuestionSet 1.20",
+    "structure": {
+      "introPage": {
+        "showIntroPage": true,
+        "title": "Quiz Title",
+        "introduction": "<p>Instructions</p>"
+      },
+      "progressType": "dots",
+      "passPercentage": 60,
+      "questions": [
+        {
+          "params": {},
+          "library": "H5P.TrueFalse 1.8",
+          "subContentId": "unique-id"
+        }
+      ],
+      "texts": {
+        "prevButton": "Zurück",
+        "nextButton": "Weiter",
+        "finishButton": "Fertig",
+        "textualProgress": "Frage @current von @total"
+      },
+      "endGame": {
+        "showResultPage": true,
+        "showSolutionButton": true,
+        "showRetryButton": true,
+        "message": "Du hast @score von @total Punkten erreicht."
+      }
+    }
+  }
+}

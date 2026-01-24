@@ -1,0 +1,1055 @@
+{
+  "accordion": {
+    "library": "H5P.Accordion",
+    "source": "accordion-7138",
+    "dependencies": [
+      "H5P.AdvancedText",
+      "H5P.Accordion",
+      "FontAwesome"
+    ],
+    "structure": {
+      "panels": [
+        {
+          "content": {
+            "params": "...",
+            "library": "...",
+            "subContentId": "...",
+            "metadata": "..."
+          },
+          "title": "Cherries"
+        }
+      ],
+      "hTag": "h2"
+    }
+  },
+  "arithmeticquiz": {
+    "library": "H5P.ArithmeticQuiz",
+    "source": "arithmetic-quiz-57860",
+    "dependencies": [
+      "H5P.ArithmeticQuiz",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "FontAwesome",
+      "H5P.FontIcons"
+    ],
+    "structure": {
+      "arithmeticType": "multiplication",
+      "maxQuestions": 5,
+      "UI": {
+        "score": "Score:",
+        "time": "Time: @time",
+        "resultPageHeader": "Finished!",
+        "go": "Go!",
+        "startButton": "Start",
+        "retryButton": "Retry",
+        "correctText": "Correct",
+        "incorrectText": "Incorrect. Correct answer was :num",
+        "durationLabel": "Duration in hours, minutes and seconds.",
+        "humanizedQuestion": "What does :arithmetic equal?"
+      },
+      "intro": "<text>",
+      "quizType": "arithmetic",
+      "equationType": "intermediate",
+      "useFractions": false
+    }
+  },
+  "audio": {
+    "library": "H5P.Audio",
+    "source": "audio-68308",
+    "dependencies": [
+      "H5P.Audio",
+      "FontAwesome"
+    ],
+    "structure": {
+      "playerMode": "full",
+      "fitToWrapper": true,
+      "controls": true,
+      "autoplay": false,
+      "contentName": "Audio",
+      "files": [
+        {
+          "path": "audios/files-58ecdc420533c.ogg",
+          "mime": "audio/ogg"
+        }
+      ]
+    }
+  },
+  "chart": {
+    "library": "H5P.Chart",
+    "source": "chart-7143",
+    "dependencies": [
+      "H5P.Chart"
+    ],
+    "structure": {
+      "graphMode": "pieChart",
+      "listOfTypes": [
+        {
+          "value": 6,
+          "color": "#f3c74f",
+          "fontColor": "#fff",
+          "text": "Blueberries"
+        }
+      ],
+      "figureDefinition": "Chart"
+    }
+  },
+  "column": {
+    "library": "H5P.Column",
+    "source": "column-ubc-53",
+    "dependencies": [
+      "H5P.AdvancedText",
+      "H5P.Image",
+      "H5P.MultiChoice",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.FontIcons",
+      "H5P.Transition",
+      "H5P.Question",
+      "H5P.TrueFalse",
+      "H5P.DragQuestion",
+      "jQuery.ui",
+      "H5P.Link",
+      "H5P.Column"
+    ],
+    "structure": {
+      "content": [
+        {
+          "content": {
+            "params": "...",
+            "library": "...",
+            "subContentId": "...",
+            "metadata": "..."
+          },
+          "useSeparator": "auto"
+        }
+      ]
+    }
+  },
+  "dialogcards": {
+    "library": "H5P.Dialogcards",
+    "source": "dialog-cards-620",
+    "dependencies": [
+      "H5P.Dialogcards",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons",
+      "H5P.Audio"
+    ],
+    "structure": {
+      "title": "<p>Learn Spanish berry names</p>\n",
+      "description": "<text>",
+      "dialogs": [
+        {
+          "text": "<text>",
+          "answer": "<p style=\"text-align: center;\">Blueberries</p>",
+          "tips": {},
+          "audio": [
+            "..."
+          ],
+          "image": {
+            "path": "...",
+            "mime": "...",
+            "copyright": "...",
+            "width": "...",
+            "height": "..."
+          },
+          "imageAltText": "Berries which have a blue colour"
+        }
+      ],
+      "next": "Next",
+      "answer": "Turn",
+      "prev": "Previous",
+      "retry": "Try again",
+      "progressText": "Card @card of @total",
+      "behaviour": {
+        "scaleTextNotCard": true,
+        "enableRetry": true,
+        "disableBackwardsNavigation": false,
+        "randomCards": false,
+        "maxProficiency": 5,
+        "quickProgression": false
+      },
+      "cardFrontLabel": "Card front"
+    }
+  },
+  "dictation": {
+    "library": "H5P.Dictation",
+    "source": "dictation-389727",
+    "dependencies": [
+      "H5P.Dictation",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "FontAwesome",
+      "H5P.FontIcons",
+      "H5P.TextUtilities",
+      "H5P.Question",
+      "H5P.Audio"
+    ],
+    "structure": {
+      "sentences": [
+        {
+          "sample": [
+            "..."
+          ],
+          "sampleAlternative": [
+            "..."
+          ],
+          "text": "The cake is a lie."
+        }
+      ],
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 50,
+          "feedback": "Hmm ..."
+        }
+      ],
+      "behaviour": {
+        "enableRetry": true,
+        "tries": 2,
+        "scoring": {
+          "ignorePunctuation": true,
+          "zeroMistakeMode": false,
+          "typoFactor": "50"
+        },
+        "textual": {
+          "wordSeparator": " ",
+          "overrideRTL": "auto",
+          "autosplit": true
+        },
+        "feedbackPresentation": {
+          "customTypoDisplay": true,
+          "alternateSolution": "first"
+        },
+        "enableSolutionsButton": true
+      },
+      "taskDescription": "<text>",
+      "media": {
+        "disableImageZooming": false
+      },
+      "l10n": {
+        "generalFeedback": "You have made @total mistake(s).",
+        "checkAnswer": "Check",
+        "tryAgain": "Retry",
+        "showSolution": "Show solution",
+        "audioNotSupported": "Your browser does not support this audio."
+      },
+      "a11y": {
+        "play": "Play",
+        "playSlowly": "Play slowly",
+        "triesLeft": "Number of tries left: @number",
+        "infinite": "infinite",
+        "enterText": "Enter what you have heard.",
+        "yourResult": "You got @score out of @total points",
+        "solution": "Solution",
+        "sentence": "Sentence",
+        "item": "Item",
+        "correct": "correct"
+      }
+    }
+  },
+  "dragquestion": {
+    "library": "H5P.DragQuestion",
+    "source": "drag-and-drop-712",
+    "dependencies": [
+      "H5P.AdvancedText",
+      "H5P.DragQuestion",
+      "jQuery.ui",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons",
+      "H5P.Question"
+    ],
+    "structure": {
+      "scoreShow": "Show score",
+      "tryAgain": "Retry",
+      "question": {
+        "settings": {
+          "size": {
+            "width": "...",
+            "height": "..."
+          },
+          "background": {
+            "path": "...",
+            "mime": "...",
+            "width": "...",
+            "height": "...",
+            "copyright": "..."
+          }
+        },
+        "task": {
+          "elements": [
+            "..."
+          ],
+          "dropZones": [
+            "..."
+          ]
+        }
+      },
+      "behaviour": {
+        "enableRetry": true,
+        "singlePoint": false,
+        "enableScoreExplanation": true,
+        "applyPenalties": true,
+        "dropZoneHighlighting": "dragging",
+        "autoAlignSpacing": 2,
+        "enableFullScreen": true,
+        "showScorePoints": true,
+        "enableCheckButton": true,
+        "showTitle": true
+      },
+      "scoreExplanation": "<text>",
+      "localize": {
+        "fullscreen": "Fullscreen",
+        "exitFullscreen": "Exit fullscreen"
+      },
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 100,
+          "feedback": "You got @score of @total points."
+        }
+      ],
+      "grabbablePrefix": "Grabbable {num} of {total}.",
+      "grabbableSuffix": "Placed in dropzone {num}.",
+      "dropzonePrefix": "Dropzone {num} of {total}."
+    }
+  },
+  "dragtext": {
+    "library": "H5P.DragText",
+    "source": "drag-the-words-ubc-47",
+    "dependencies": [
+      "H5P.DragText",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.FontIcons",
+      "H5P.Transition",
+      "jQuery.ui",
+      "H5P.Question"
+    ],
+    "structure": {
+      "taskDescription": "<text>",
+      "checkAnswer": "Check",
+      "tryAgain": "Retry",
+      "showSolution": "Show Solution",
+      "behaviour": {
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "instantFeedback": false,
+        "enableCheckButton": true
+      },
+      "textField": "<text>",
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 100,
+          "feedback": "Score: @score of @total."
+        }
+      ],
+      "dropZoneIndex": "Drop Zone @index.",
+      "empty": "Drop Zone @index is empty.",
+      "contains": "Drop Zone @index contains draggable @draggable."
+    }
+  },
+  "essay": {
+    "library": "H5P.Essay",
+    "source": "essay-ubc-20",
+    "dependencies": [
+      "H5P.Essay",
+      "H5P.JoubelUI",
+      "FontAwesome",
+      "H5P.FontIcons",
+      "H5P.Transition",
+      "H5P.TextUtilities",
+      "H5P.Question"
+    ],
+    "structure": {
+      "solution": {
+        "introduction": "<text>",
+        "sample": "<text>"
+      },
+      "keywords": [
+        {
+          "options": {
+            "points": "...",
+            "occurrences": "...",
+            "caseSensitive": "...",
+            "forgiveMistakes": "...",
+            "feedbackMissed": "...",
+            "feedbackIncludedWord": "...",
+            "feedbackMissedWord": "..."
+          },
+          "keyword": "Bilbo"
+        }
+      ],
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 49,
+          "feedback": "Hmm, maybe you should read the book again?"
+        }
+      ],
+      "behaviour": {
+        "inputFieldSize": "10",
+        "enableRetry": true,
+        "ignoreScoring": false,
+        "minimumLength": 100,
+        "maximumLength": 500,
+        "percentagePassing": 50,
+        "percentageMastering": 80,
+        "pointsHost": 1
+      },
+      "checkAnswer": "Check",
+      "tryAgain": "Retry",
+      "showSolution": "Show solution",
+      "feedbackHeader": "Feedback",
+      "solutionTitle": "Sample solution",
+      "remainingChars": "Remaining characters: @chars"
+    }
+  },
+  "blanks": {
+    "library": "H5P.Blanks",
+    "source": "fill-in-the-blanks-837",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.Blanks",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons",
+      "H5P.TextUtilities",
+      "H5P.Question"
+    ],
+    "structure": {
+      "questions": [
+        "<text>"
+      ],
+      "showSolutions": "Show solutions",
+      "tryAgain": "Try again",
+      "text": "<text>",
+      "checkAnswer": "Check",
+      "notFilledOut": "Please fill in all blanks",
+      "behaviour": {
+        "enableSolutionsButton": true,
+        "autoCheck": true,
+        "caseSensitive": false,
+        "showSolutionsRequiresInput": true,
+        "separateLines": false,
+        "enableRetry": true,
+        "confirmCheckDialog": false,
+        "confirmRetryDialog": false,
+        "acceptSpellingErrors": false,
+        "enableCheckButton": true
+      },
+      "answerIsCorrect": "&#039;:ans&#039; is correct",
+      "answerIsWrong": "&#039;:ans&#039; is wrong",
+      "answeredCorrectly": "Answered correctly"
+    }
+  },
+  "flashcards": {
+    "library": "H5P.Flashcards",
+    "source": "flashcards-ubc-23",
+    "dependencies": [
+      "H5P.Flashcards",
+      "FontAwesome",
+      "H5P.FontIcons",
+      "H5P.JoubelUI",
+      "H5P.Transition"
+    ],
+    "structure": {
+      "cards": [
+        {
+          "image": {
+            "path": "...",
+            "mime": "...",
+            "copyright": "...",
+            "width": "...",
+            "height": "..."
+          },
+          "answer": "Lime",
+          "tip": "",
+          "text": "Green, sour fruit...."
+        }
+      ],
+      "progressText": "Card @card of @total",
+      "next": "Next",
+      "previous": "Previous",
+      "checkAnswerText": "Check",
+      "showSolutionsRequiresInput": true,
+      "defaultAnswerText": "Your answer",
+      "correctAnswerText": "Correct",
+      "incorrectAnswerText": "Incorrect",
+      "showSolutionText": "Correct answer"
+    }
+  },
+  "guesstheanswer": {
+    "library": "H5P.GuessTheAnswer",
+    "source": "guess-the-answer-2402",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.GuessTheAnswer",
+      "FontAwesome"
+    ],
+    "structure": {
+      "solutionLabel": "Press here to reveal answer",
+      "taskDescription": "<p>Which fruit is this?</p>\n",
+      "solutionText": "Cherries",
+      "media": {
+        "library": "H5P.Image 1.1",
+        "subContentId": "3eb691ff-f4e4-46bf-accf-572c0783105d",
+        "params": {
+          "contentName": "Image",
+          "file": {
+            "path": "...",
+            "mime": "...",
+            "width": "...",
+            "height": "...",
+            "copyright": "..."
+          },
+          "alt": "Red berries",
+          "title": "",
+          "decorative": false
+        },
+        "metadata": {
+          "title": "Owoce wisni.jpg",
+          "authors": [
+            "..."
+          ],
+          "source": "<text>",
+          "license": "CC BY-SA",
+          "licenseVersion": "4.0",
+          "contentType": "Image"
+        }
+      }
+    }
+  },
+  "imagejuxtaposition": {
+    "library": "H5P.ImageJuxtaposition",
+    "source": "image-juxtaposition-65047",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.ImageJuxtaposition",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "FontAwesome",
+      "H5P.FontIcons",
+      "H5P.Question"
+    ],
+    "structure": {
+      "imageBefore": {
+        "labelBefore": "July 11, 2011",
+        "imageBefore": {
+          "library": "H5P.Image 1.1",
+          "subContentId": "83d7df28-f7f3-43df-af34-30dd034c368c",
+          "params": {
+            "alt": "...",
+            "contentName": "...",
+            "file": "..."
+          }
+        }
+      },
+      "imageAfter": {
+        "labelAfter": "October 23, 2011",
+        "imageAfter": {
+          "library": "H5P.Image 1.1",
+          "subContentId": "6649477d-4e0a-43fc-88be-a688ea5e6ef6",
+          "params": {
+            "alt": "...",
+            "contentName": "...",
+            "file": "..."
+          }
+        }
+      },
+      "behavior": {
+        "startingPosition": 50,
+        "sliderOrientation": "horizontal"
+      }
+    }
+  },
+  "imageslider": {
+    "library": "H5P.ImageSlider",
+    "source": "image-slider-130336",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.ImageSlide",
+      "H5P.ImageSlider"
+    ],
+    "structure": {
+      "imageSlides": [
+        {
+          "params": {
+            "image": "..."
+          },
+          "library": "H5P.ImageSlide 1.1",
+          "subContentId": "f459973b-8d98-47c0-8d78-c24406082c76",
+          "metadata": {
+            "contentType": "...",
+            "license": "...",
+            "title": "..."
+          }
+        }
+      ],
+      "aspectRatioMode": "auto",
+      "aspectRatio": {
+        "aspectWidth": 4,
+        "aspectHeight": 3
+      },
+      "a11y": {
+        "nextSlide": "Next Image",
+        "prevSlide": "Previous Image",
+        "gotoSlide": "Go to image %slide"
+      }
+    }
+  },
+  "markthewords": {
+    "library": "H5P.MarkTheWords",
+    "source": "mark-the-words-1408",
+    "dependencies": [
+      "H5P.MarkTheWords",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons",
+      "H5P.Question"
+    ],
+    "structure": {
+      "checkAnswerButton": "Check",
+      "tryAgainButton": "Retry",
+      "showSolutionButton": "Show solution",
+      "behaviour": {
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "enableCheckButton": true,
+        "showScorePoints": true
+      },
+      "taskDescription": "<text>",
+      "textField": "<text>",
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 100,
+          "feedback": "You got @score of @total points."
+        }
+      ],
+      "correctAnswer": "Correct!",
+      "incorrectAnswer": "Incorrect!",
+      "missedAnswer": "Missed!"
+    }
+  },
+  "memorygame": {
+    "library": "H5P.MemoryGame",
+    "source": "memory-game-708",
+    "dependencies": [
+      "H5P.MemoryGame",
+      "FontAwesome",
+      "H5P.Timer"
+    ],
+    "structure": {
+      "cards": [
+        {
+          "description": "Raspberries",
+          "image": {
+            "path": "...",
+            "mime": "...",
+            "copyright": "...",
+            "width": "...",
+            "height": "..."
+          },
+          "imageAlt": "Raspberries",
+          "matchAlt": "Raspberries"
+        }
+      ],
+      "l10n": {
+        "cardTurns": "Card turns",
+        "timeSpent": "Time spent",
+        "feedback": "Good work!",
+        "tryAgain": "Reset",
+        "closeLabel": "Close",
+        "label": "Memory Game. Find the matching cards.",
+        "done": "All of the cards have been found.",
+        "cardPrefix": "Card %num:",
+        "cardUnturned": "Unturned.",
+        "cardMatched": "Match found."
+      },
+      "behaviour": {
+        "useGrid": true,
+        "allowRetry": true
+      },
+      "lookNFeel": {
+        "themeColor": "#909090"
+      }
+    }
+  },
+  "personalityquiz": {
+    "library": "H5P.PersonalityQuiz",
+    "source": "personality-quiz-21254",
+    "dependencies": [
+      "H5P.PersonalityQuiz"
+    ],
+    "structure": {
+      "titleScreen": {
+        "title": {
+          "display": true,
+          "text": "Which berry are you?"
+        },
+        "image": {
+          "file": {
+            "path": "...",
+            "mime": "...",
+            "copyright": "...",
+            "width": "...",
+            "height": "...",
+            "originalImage": "..."
+          }
+        },
+        "skip": false
+      },
+      "resultScreen": {
+        "animation": "wheel",
+        "displayTitle": true,
+        "displayDescription": true,
+        "imagePosition": "background"
+      },
+      "personalities": [
+        {
+          "image": {
+            "file": "...",
+            "alt": "..."
+          },
+          "name": "Strawberry",
+          "description": "<text>"
+        }
+      ],
+      "questions": [
+        {
+          "image": {},
+          "answers": [
+            "..."
+          ],
+          "text": "Which part of the world do you prefer"
+        }
+      ],
+      "startText": "Start",
+      "progressText": "@question of @total",
+      "retakeText": "Retake the quiz",
+      "animation": true,
+      "buttonColor": "4D5DAA",
+      "progressbarColor": "38B755"
+    }
+  },
+  "questionset": {
+    "library": "H5P.QuestionSet",
+    "source": "quiz-question-set-ubc-38",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.MultiChoice",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.FontIcons",
+      "H5P.Transition",
+      "H5P.Question",
+      "H5P.DragQuestion",
+      "jQuery.ui",
+      "H5P.QuestionSet",
+      "H5P.Video"
+    ],
+    "structure": {
+      "progressType": "dots",
+      "passPercentage": 50,
+      "questions": [
+        {
+          "params": {
+            "answers": "...",
+            "UI": "...",
+            "question": "...",
+            "behaviour": "...",
+            "media": "...",
+            "confirmCheck": "...",
+            "confirmRetry": "...",
+            "overallFeedback": "..."
+          },
+          "library": "H5P.MultiChoice 1.16",
+          "subContentId": "bd03477a-90a1-486d-890b-0657d6e80ffd",
+          "metadata": {
+            "title": "...",
+            "license": "...",
+            "contentType": "..."
+          }
+        }
+      ],
+      "introPage": {
+        "showIntroPage": false,
+        "startButtonText": "Start Quiz",
+        "introduction": ""
+      },
+      "texts": {
+        "prevButton": "Previous",
+        "nextButton": "Next",
+        "finishButton": "Finish",
+        "textualProgress": "Question: @current of @total questions",
+        "questionLabel": "Question",
+        "jumpToQuestion": "Jump to question %d",
+        "readSpeakerProgress": "Question @current of @total",
+        "unansweredText": "Unanswered",
+        "answeredText": "Answered",
+        "currentQuestionText": "Current question"
+      },
+      "endGame": {
+        "showResultPage": true,
+        "solutionButtonText": "Show solution",
+        "finishButtonText": "Finish",
+        "showAnimations": false,
+        "skippable": false,
+        "skipButtonText": "Skip video",
+        "message": "Your result:",
+        "retryButtonText": "Retry",
+        "noResultMessage": "Finished",
+        "overallFeedback": [
+          {
+            "from": "...",
+            "to": "...",
+            "feedback": "..."
+          }
+        ]
+      },
+      "override": {
+        "showSolutionButton": "off",
+        "retryButton": "off",
+        "checkButton": true
+      },
+      "disableBackwardsNavigation": false,
+      "randomQuestions": false
+    }
+  },
+  "singlechoiceset": {
+    "library": "H5P.SingleChoiceSet",
+    "source": "single-choice-set-1515",
+    "dependencies": [
+      "H5P.SingleChoiceSet",
+      "H5P.Transition",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.FontIcons",
+      "H5P.Question"
+    ],
+    "structure": {
+      "choices": [
+        {
+          "answers": [
+            "..."
+          ],
+          "question": "Goji berries are also known as ...",
+          "subContentId": "51445ea9-9c98-437a-8981-72d46d6e86c4"
+        }
+      ],
+      "behaviour": {
+        "timeoutCorrect": 1000,
+        "timeoutWrong": 1000,
+        "soundEffectsEnabled": true,
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "passPercentage": 100,
+        "autoContinue": true
+      },
+      "l10n": {
+        "showSolutionButtonLabel": "Show solution",
+        "retryButtonLabel": "Retry",
+        "solutionViewTitle": "Solution",
+        "correctText": "Correct!",
+        "incorrectText": "Incorrect!",
+        "muteButtonLabel": "Mute feedback sound",
+        "closeButtonLabel": "Close",
+        "slideOfTotal": "Slide :num of :total",
+        "nextButtonLabel": "Next question",
+        "scoreBarLabel": "You got :num out of :total points"
+      },
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 100,
+          "feedback": "You got :numcorrect of :maxscore correct"
+        }
+      ]
+    }
+  },
+  "speakthewords": {
+    "library": "H5P.SpeakTheWords",
+    "source": "speak-the-words-73595",
+    "dependencies": [
+      "H5P.SpeakTheWords",
+      "FontAwesome",
+      "H5P.Question",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons"
+    ],
+    "structure": {
+      "question": "Speak the answer. What is 2 + 2 ?",
+      "inputLanguage": "en-US",
+      "l10n": {
+        "retryLabel": "Retry",
+        "showSolutionLabel": "Show solution",
+        "speakLabel": "Push to speak",
+        "listeningLabel": "Listening...",
+        "correctAnswersText": "The correct answer(s):",
+        "userAnswersText": "Your answer(s) was interpreted as:",
+        "noSound": "<text>",
+        "unsupportedBrowserHeader": "<text>",
+        "unsupportedBrowserDetails": "Please try again in a browser like Chrome",
+        "a11yShowSolution": "<text>"
+      },
+      "acceptedAnswers": [
+        "four"
+      ],
+      "incorrectAnswerText": "Incorrect answer",
+      "correctAnswerText": "Correct answer",
+      "media": {
+        "disableImageZooming": false
+      }
+    }
+  },
+  "summary": {
+    "library": "H5P.Summary",
+    "source": "summary-714",
+    "dependencies": [
+      "H5P.Summary",
+      "FontAwesome",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.FontIcons",
+      "H5P.Question"
+    ],
+    "structure": {
+      "intro": "Choose the correct statement.",
+      "summaries": [
+        {
+          "summary": [
+            "..."
+          ],
+          "tip": "Blueberries are used in blueberry jam",
+          "subContentId": "6e5c14ce-1367-4bf1-b003-63b3d3681091"
+        }
+      ],
+      "solvedLabel": "Progress:",
+      "scoreLabel": "Wrong answers:",
+      "resultLabel": "Your result",
+      "overallFeedback": [
+        {
+          "from": 0,
+          "to": 100,
+          "feedback": "<text>"
+        }
+      ],
+      "labelCorrect": "Correct.",
+      "labelIncorrect": "Incorrect! Please try again.",
+      "labelCorrectAnswers": "Correct answers.",
+      "tipButtonLabel": "Show tip"
+    }
+  },
+  "timeline": {
+    "library": "H5P.Timeline",
+    "source": "timeline-716",
+    "dependencies": [
+      "H5P.Timeline",
+      "TimelineJS"
+    ],
+    "structure": {
+      "timeline": {
+        "asset": {
+          "media": "<text>",
+          "credit": "<text>"
+        },
+        "date": [
+          {
+            "asset": "...",
+            "headline": "...",
+            "startDate": "...",
+            "endDate": "...",
+            "text": "..."
+          }
+        ],
+        "headline": "History of strawberries",
+        "text": "<text>",
+        "defaultZoomLevel": "0",
+        "language": "en",
+        "era": [
+          {
+            "text": "..."
+          }
+        ],
+        "height": 600
+      }
+    }
+  },
+  "truefalse": {
+    "library": "H5P.TrueFalse",
+    "source": "true-false-34806",
+    "dependencies": [
+      "H5P.Image",
+      "H5P.TrueFalse",
+      "FontAwesome",
+      "H5P.FontIcons",
+      "H5P.JoubelUI",
+      "H5P.Transition",
+      "H5P.Question"
+    ],
+    "structure": {
+      "media": {
+        "type": {
+          "params": {
+            "contentName": "...",
+            "alt": "...",
+            "file": "...",
+            "decorative": "..."
+          },
+          "library": "H5P.Image 1.1",
+          "subContentId": "939ee32a-0d36-4344-a433-3b060ce46744",
+          "metadata": {
+            "title": "...",
+            "authors": "...",
+            "source": "...",
+            "license": "...",
+            "contentType": "..."
+          }
+        },
+        "disableImageZooming": true
+      },
+      "correct": "true",
+      "l10n": {
+        "trueText": "Yes",
+        "falseText": "No",
+        "score": "You got @score of @total points",
+        "checkAnswer": "Check",
+        "showSolutionButton": "Show solution",
+        "tryAgain": "Retry",
+        "wrongAnswerMessage": "Wrong answer",
+        "correctAnswerMessage": "Correct answer",
+        "scoreBarLabel": "You got :num out of :total points",
+        "submitAnswer": "Submit"
+      },
+      "behaviour": {
+        "enableRetry": true,
+        "enableSolutionsButton": true,
+        "confirmCheckDialog": false,
+        "confirmRetryDialog": false,
+        "autoCheck": false,
+        "enableCheckButton": true
+      },
+      "confirmCheck": {
+        "header": "Finish ?",
+        "body": "Are you sure you wish to finish ?",
+        "cancelLabel": "Cancel",
+        "confirmLabel": "Finish"
+      },
+      "confirmRetry": {
+        "header": "Retry ?",
+        "body": "Are you sure you wish to retry ?",
+        "cancelLabel": "Cancel",
+        "confirmLabel": "Confirm"
+      },
+      "question": "<p>Oslo is the capital of Norway.</p>\n"
+    }
+  }
+}
