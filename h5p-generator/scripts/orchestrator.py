@@ -15,7 +15,12 @@ from typing import Any
 from pathlib import Path
 from enum import Enum
 
-from sub_agents import QuizAgent, CardAgent, DragAgent, AgentResult
+from sub_agents import (
+    QuizAgent, CardAgent, DragAgent, AgentResult,
+    DesignAgent, DesignResult,
+    CombinerAgent, CombineResult, ContainerType
+)
+from brand_config import BrandConfig, get_brand_preset
 
 
 class ContentStructure(Enum):
@@ -75,6 +80,7 @@ class OrchestratorResult:
     plan: ExecutionPlan
     element_results: list[AgentResult]
     combined_result: Any = None  # H5PResult für Container
+    design_results: list[DesignResult] = field(default_factory=list)  # NEU: Design-Ergebnisse
     errors: list[str] = field(default_factory=list)
 
 
@@ -133,8 +139,9 @@ class H5POrchestrator:
         'mark_words': 'drag',
     }
 
-    def __init__(self, output_dir: Path | str = None):
+    def __init__(self, output_dir: Path | str = None, brand_config: BrandConfig = None):
         self.output_dir = Path(output_dir) if output_dir else Path("../test-output")
+        self.brand_config = brand_config
 
         # Sub-Agents initialisieren
         self.agents = {
@@ -142,6 +149,12 @@ class H5POrchestrator:
             'card': CardAgent(self.output_dir),
             'drag': DragAgent(self.output_dir),
         }
+
+        # Design Agent initialisieren (falls brand_config vorhanden)
+        self._design_agent = DesignAgent(brand_config) if brand_config else None
+
+        # Combiner Agent initialisieren
+        self._combiner_agent = CombinerAgent(self.output_dir)
 
     def analyze(self, content: str | dict) -> ContentAnalysis:
         """
@@ -436,18 +449,30 @@ class H5POrchestrator:
 
         return results
 
-    def run(self, content: str | dict, content_items: list[dict] = None) -> OrchestratorResult:
+    def run(
+        self,
+        content: str | dict,
+        content_items: list[dict] = None,
+        apply_design: bool = True,
+        combine: bool | str = False,
+        combine_title: str = None
+    ) -> OrchestratorResult:
         """
-        Vollständiger Workflow: Analyse → Planung → Ausführung.
+        Vollständiger Workflow: Analyse → Planung → Ausführung → Design → Kombination.
 
         Args:
             content: Lernmaterial (Text oder Dict)
             content_items: Optionale Content-Daten pro Element
+            apply_design: Design-Phase ausfuehren (default: True)
+            combine: Elemente kombinieren? True/False oder 'auto', 'column', 'question_set', 'course_presentation'
+            combine_title: Titel fuer kombinierten Container
 
         Returns:
             OrchestratorResult mit allen Ergebnissen
         """
         errors = []
+        design_results = []
+        combined_result = None
 
         # 1. Analyse
         try:
@@ -485,6 +510,47 @@ class H5POrchestrator:
                 errors=[f"Ausführung fehlgeschlagen: {str(e)}"]
             )
 
+        # 4. Design-Phase
+        if apply_design and self._design_agent:
+            try:
+                design_results = self._design_agent.process_batch(results)
+                for dr in design_results:
+                    if not dr.success and dr.error:
+                        errors.append(f"Design {dr.content_type}: {dr.error}")
+            except Exception as e:
+                errors.append(f"Design-Phase fehlgeschlagen: {str(e)}")
+
+        # 5. Kombinations-Phase (NEU)
+        successful_results = [r for r in results if r.success]
+        if combine and len(successful_results) >= 2:
+            try:
+                # Container-Typ bestimmen
+                if combine == True or combine == 'auto':
+                    container_type = ContainerType.AUTO
+                elif combine == 'column':
+                    container_type = ContainerType.COLUMN
+                elif combine == 'question_set':
+                    container_type = ContainerType.QUESTION_SET
+                elif combine == 'course_presentation':
+                    container_type = ContainerType.COURSE_PRESENTATION
+                else:
+                    container_type = ContainerType.AUTO
+
+                # Titel bestimmen
+                title = combine_title or f"Lerneinheit: {analysis.learning_goals[0][:30] if analysis.learning_goals else 'Kombiniert'}"
+
+                combined_result = self._combiner_agent.combine(
+                    successful_results,
+                    container_type=container_type,
+                    title=title
+                )
+
+                if not combined_result.success:
+                    errors.extend(combined_result.errors)
+
+            except Exception as e:
+                errors.append(f"Kombinations-Phase fehlgeschlagen: {str(e)}")
+
         # Erfolg prüfen
         success = all(r.success for r in results)
         for r in results:
@@ -496,16 +562,29 @@ class H5POrchestrator:
             analysis=analysis,
             plan=plan,
             element_results=results,
+            combined_result=combined_result,
+            design_results=design_results,
             errors=errors
         )
 
-    async def run_async(self, content: str | dict, content_items: list[dict] = None) -> OrchestratorResult:
+    async def run_async(self, content: str | dict, content_items: list[dict] = None, apply_design: bool = True) -> OrchestratorResult:
         """Asynchrone Version von run()"""
         errors = []
+        design_results = []
 
         analysis = self.analyze(content)
         plan = self.plan(analysis, content_items)
         results = await self.execute_async(plan)
+
+        # Design-Phase (synchron, da I/O-bound)
+        if apply_design and self._design_agent:
+            try:
+                design_results = self._design_agent.process_batch(results)
+                for dr in design_results:
+                    if not dr.success and dr.error:
+                        errors.append(f"Design {dr.content_type}: {dr.error}")
+            except Exception as e:
+                errors.append(f"Design-Phase fehlgeschlagen: {str(e)}")
 
         success = all(r.success for r in results)
         for r in results:
@@ -517,6 +596,7 @@ class H5POrchestrator:
             analysis=analysis,
             plan=plan,
             element_results=results,
+            design_results=design_results,
             errors=errors
         )
 
