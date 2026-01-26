@@ -5,7 +5,7 @@ license: MIT
 agent: Education
 ---
 
-# H5P Generator v2.2
+# H5P Generator v2.3
 
 Generate .h5p files directly from Python with robust error handling and customizable styling.
 
@@ -408,18 +408,91 @@ Offizielle h5p.org Beispiele in `examples/h5p/`:
 
 Für komplexe Typen: H5P in WordPress/Moodle direkt erstellen.
 
+## Text-zu-Quiz (NEU v2.3)
+
+Die einfachste Art, Quizze zu erstellen: Fragen als Freitext eingeben, H5P-Quiz als Output.
+
+### generate_from_questions()
+
+```python
+from h5p_system import H5PSystem
+
+system = H5PSystem()
+
+# Multiple Choice mit Antworten
+result = system.generate_from_questions('''
+    Was ist ein Debitor?
+    - Ein Schuldner
+    - Ein Glaeubiger [correct]
+    - Ein Lieferant
+''', title="Rechnungswesen Quiz")
+
+# Batch True/False
+result = system.generate_from_questions('''
+    ---
+    Q: Python ist eine Programmiersprache.
+    A: wahr
+    ---
+    Q: Python wurde 2020 erfunden.
+    A: falsch
+''', title="Python Quiz")
+
+# Mit Domain fuer bessere Distraktoren
+result = system.generate_from_questions(
+    "Die Bilanz zeigt Vermoegen und Kapital.",
+    title="Buchfuehrung",
+    domain="accounting"  # Generiert passende Distraktoren
+)
+```
+
+### Unterstuetzte Eingabeformate
+
+| Format | Beispiel | Ergebnis |
+|--------|----------|----------|
+| **With Answers** | `Was ist X? - A [correct] - B - C` | Multiple Choice |
+| **Batch TF** | `--- Q: Aussage A: wahr ---` | True/False |
+| **Simple** | `Ein Debitor ist ein Glaeubiger.` | True/False |
+
+### Convenience-Funktion
+
+```python
+from h5p_system import quick_quiz_from_text
+
+result = quick_quiz_from_text('''
+    Was ist ein Debitor?
+    - Ein Schuldner
+    - Ein Glaeubiger [correct]
+''', title="Quiz", domain="accounting")
+```
+
+### Domains fuer Distraktoren
+
+| Domain | Konzepte |
+|--------|----------|
+| `accounting` | Debitor, Kreditor, Aktiva, Passiva, Soll, Haben, Bilanz, GuV |
+| `scrum` | Product Owner, Scrum Master, Sprint, Backlog, Daily, Review |
+| `it` | Server, Client, CPU, RAM, Netzwerk, Datenbank, Protokoll |
+| `business` | Angebot, Nachfrage, Preis, Gewinn, Verlust, Kosten |
+
 ## Changelog
 
+### v2.3 (2026-01-26)
+- **Neu:** `generate_from_questions()` - Text-zu-Quiz Funktionalitaet
+- **Neu:** `TextParserAgent` - Parst Freitext in strukturierte Fragen
+- **Neu:** `DistractorGenerator` - Generiert plausible Falsch-Antworten
+- **Neu:** `quick_quiz_from_text()` - Convenience-Funktion
+- **Neu:** Domain-Templates fuer accounting, scrum, it, business
+
 ### v2.2 (2026-01-24)
-- **Neu:** Drag the Words (`create_drag_text()`) - Wörter in Lücken ziehen
+- **Neu:** Drag the Words (`create_drag_text()`) - Woerter in Luecken ziehen
 - **Neu:** Timeline (`create_timeline()`) - Zeitleisten mit Events
 - **Neu:** Memory Game (`create_memory_game()`) - Memory-Spiel
-- **Gesamt:** 12 Content-Typen unterstützt
+- **Gesamt:** 12 Content-Typen unterstuetzt
 
 ### v2.1 (2026-01-24)
-- **Fix:** Drag & Drop Positionierung korrigiert (war außerhalb Canvas)
-- **Neu:** Dynamische Draggable-Breite nach Textlänge
-- **Neu:** Entscheidungsmatrix für Content-Type-Wahl
+- **Fix:** Drag & Drop Positionierung korrigiert (war ausserhalb Canvas)
+- **Neu:** Dynamische Draggable-Breite nach Textlaenge
+- **Neu:** Entscheidungsmatrix fuer Content-Type-Wahl
 - **Neu:** Template-Bibliothek mit validierten JSON-Strukturen
 - **Neu:** 33 Beispiel-H5P-Dateien als Referenz
 
@@ -430,4 +503,4 @@ Für komplexe Typen: H5P in WordPress/Moodle direkt erstellen.
 
 ---
 
-*Version 2.2 - 12 Content-Typen mit Template-Bibliothek*
+*Version 2.3 - Text-zu-Quiz mit Distractor-Generator*

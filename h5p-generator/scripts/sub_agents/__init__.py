@@ -8,6 +8,16 @@ from .drag_agent import DragAgent
 from .design_agent import DesignAgent, DesignResult
 from .combiner_agent import CombinerAgent, CombineResult, ContainerType
 
+# Text-zu-Quiz Agents (NEU v2.3)
+from .text_parser_agent import (
+    TextParserAgent,
+    ParsedQuestion,
+    ParseResult,
+    QuestionType,
+    InputFormat
+)
+from .distractor_generator import DistractorGenerator, DistractorResult
+
 __all__ = [
     'BaseH5PAgent',
     'AgentResult',
@@ -19,4 +29,12 @@ __all__ = [
     'CombinerAgent',
     'CombineResult',
     'ContainerType',
+    # Text-zu-Quiz
+    'TextParserAgent',
+    'ParsedQuestion',
+    'ParseResult',
+    'QuestionType',
+    'InputFormat',
+    'DistractorGenerator',
+    'DistractorResult',
 ]
