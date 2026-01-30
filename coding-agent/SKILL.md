@@ -2,8 +2,6 @@
 name: coding-agent
 description: Specialized coding agent with Context7 integration for documentation-aware code generation. Creates, refactors, and extends MCP servers and Node.js/Python projects with up-to-date library documentation.
 license: MIT
-agent: DevOps
-version: "1.0"
 ---
 
 # Coding Agent
@@ -294,6 +292,29 @@ feat({server}): add {tool_name} tool
 - Implements {brief description}
 - Uses {library} for {purpose}
 - Closes #{issue} (if applicable)
+```
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | code:implement |
+| **Context** | tool_name, server, libraries_used, lines_of_code |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "code:implement",
+  "context": "{\"tool_name\": \"moodle_create_quiz\", \"server\": \"moodle-mcp\", \"libraries_used\": [\"zod\", \"express\"], \"lines_of_code\": 85}",
+  "result": "success"
+}
 ```
 
 ---

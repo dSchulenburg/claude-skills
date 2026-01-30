@@ -5,8 +5,7 @@ description: |
   Use when: Lehrer möchte Unterrichtsmaterial in Moodle-Kursstruktur umwandeln,
   Lernfelder/Lernsituationen digitalisieren, oder bestehende Kurse als Template nutzen.
 license: MIT
-agent: Education
-tools:
+allowed-tools:
   - moodle:moodle_create_course
   - moodle:moodle_create_section
   - moodle:moodle_update_section
@@ -310,6 +309,29 @@ Abschnitt X: [Titel]
 - `references/lf3-ecommerce-example.md` - Vollständiges Beispiel
 - `references/matchplan-struktur.md` - Matchplan-Analyse
 - `references/aktivitaeten-mapping.md` - Matchplan → Moodle Mapping
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | moodle:create_lernfeld_course |
+| **Context** | lernfeld, course_id, section_count, activity_count |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "moodle:create_lernfeld_course",
+  "context": "{\"lernfeld\": \"LF3\", \"course_id\": 6, \"section_count\": 9, \"activity_count\": 24}",
+  "result": "success"
+}
+```
 
 ---
 

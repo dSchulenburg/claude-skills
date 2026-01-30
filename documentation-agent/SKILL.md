@@ -2,8 +2,6 @@
 name: documentation-agent
 description: Specialized documentation agent for generating, maintaining, and organizing technical documentation. Creates MCP tool docs, API references, session logs, and architecture documentation in Obsidian vault.
 license: MIT
-agent: DevOps
-version: "1.0"
 ---
 
 # Documentation Agent
@@ -384,6 +382,29 @@ related:
 | `skills` | Skill documentation |
 | `infrastructure` | Server/Docker docs |
 | `reference` | Quick reference docs |
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | docs:generate |
+| **Context** | doc_type, target_file, sections_updated |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "docs:generate",
+  "context": "{\"doc_type\": \"mcp_tool\", \"target_file\": \"MCP/Moodle.md\", \"sections_updated\": [\"moodle_create_quiz\", \"Changelog\"]}",
+  "result": "success"
+}
+```
 
 ---
 

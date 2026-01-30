@@ -2,7 +2,6 @@
 name: h5p-quiz-to-moodle
 description: Generate H5P quizzes from natural language prompts and upload directly to Moodle. Say "Make a quiz about X" and get it in Moodle instantly.
 license: MIT
-agent: Education
 ---
 
 # H5P Quiz to Moodle
@@ -178,6 +177,29 @@ Kann kombiniert werden mit:
 - `moodle-course-workflow`: Quiz in neuen Kurs einbetten
 - `moodle-section-optimizer`: Quiz als Abschluss einer Sektion
 - `lernfeld-zu-moodle-kurs`: Automatische Quiz-Generierung pro Lernsituation
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | h5p:upload_to_moodle |
+| **Context** | topic, question_count, course_id, content_id |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "h5p:upload_to_moodle",
+  "context": "{\"topic\": \"Bilanz\", \"question_count\": 10, \"course_id\": 2, \"content_id\": 27}",
+  "result": "success"
+}
+```
 
 ---
 

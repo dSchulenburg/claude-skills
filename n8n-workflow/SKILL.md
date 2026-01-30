@@ -2,7 +2,6 @@
 name: n8n-workflow
 description: Create, debug, and manage n8n workflows. Use for building automations, analyzing workflow executions, fixing errors, and optimizing performance.
 license: MIT
-agent: DevOps
 ---
 
 # n8n Workflow Management
@@ -462,6 +461,29 @@ n8n_get_execution({ id: "456", mode: "preview" })
 - Reduce data size with Set node
 - Use pagination
 - Process in batches
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | n8n:manage_workflow |
+| **Context** | workflow_id, workflow_name, operation, node_count |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "n8n:manage_workflow",
+  "context": "{\"workflow_id\": \"123\", \"workflow_name\": \"Email Router\", \"operation\": \"create\", \"node_count\": 5}",
+  "result": "success"
+}
+```
 
 ---
 

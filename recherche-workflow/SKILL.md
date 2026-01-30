@@ -2,8 +2,7 @@
 name: recherche-workflow
 description: Research workflow for finding well-substantiated contrarian positions. Specialized in anarchist theory, stigmergy, grassroots movements, guerilla gardening, and alternative media. Use when researching topics that benefit from non-mainstream perspectives with academic rigor.
 license: MIT
-agent: Personal
-tools:
+allowed-tools:
   - WebSearch
   - WebFetch
 ---
@@ -343,6 +342,29 @@ WebSearch({ query: "[Thema] critique OR criticism site:academia.edu" })
 
 - **blog-article-workflow**: Recherche-Ergebnisse in Artikel umwandeln
 - **bswi-infobrief**: Für schulische Kontexte aufbereiten
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | personal |
+| **Action** | research:execute |
+| **Context** | topic, sources_count, perspectives_count, quality_score |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "personal",
+  "action": "research:execute",
+  "context": "{\"topic\": \"Dezentrale Koordination\", \"sources_count\": 12, \"perspectives_count\": 3, \"quality_score\": \"high\"}",
+  "result": "success"
+}
+```
 
 ---
 

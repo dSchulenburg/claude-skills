@@ -2,7 +2,6 @@
 name: moodle-section-analyzer
 description: Analysiert Moodle-Kursabschnitte auf 4K-Defizite (Kreativität, Kritisches Denken, Kommunikation, Kollaboration), fehlende Interaktivität und Multimedia-Lücken. Gibt konkrete Optimierungsvorschläge mit H5P-Empfehlungen. Nutze wenn Lehrer einen Kurs modernisieren, mehr Engagement erreichen oder didaktisch aufwerten wollen.
 license: MIT
-agent: Education
 ---
 
 # Moodle Section Analyzer
@@ -288,6 +287,29 @@ Siehe auch: [[Moodle-Learnings#KRITISCH moodledata Berechtigungsproblem]]
 - [[Moodle]] - MCP Server Dokumentation
 - [[Moodle-Learnings]] - Troubleshooting & Best Practices
 - [[local_h5p_api Plugin]] - H5P Upload/Embed API
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | moodle:analyze_section |
+| **Context** | course_id, section_num, 4k_score, engagement_score |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "moodle:analyze_section",
+  "context": "{\"course_id\": 6, \"section_num\": 2, \"4k_score\": {\"kreativitaet\": 0, \"kritisches_denken\": 1}, \"engagement_score\": 43}",
+  "result": "success"
+}
+```
 
 ---
 

@@ -2,7 +2,6 @@
 name: h5p-generator
 description: Generate H5P interactive content files (.h5p) programmatically using Python. Supports 9 content types with error handling, styling themes, and batch creation. Use for quizzes, flashcards, drag-and-drop, and more.
 license: MIT
-agent: Education
 ---
 
 # H5P Generator v2.3
@@ -500,6 +499,29 @@ result = quick_quiz_from_text('''
 - Fehlerbehandlung mit H5PResult
 - Themes und Styling
 - 5 neue Content-Types (Single Choice, Flashcards, Mark Words, Summary, Accordion)
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | h5p:generate |
+| **Context** | content_type, title, question_count |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "h5p:generate",
+  "context": "{\"content_type\": \"multi_choice\", \"title\": \"Python Quiz\", \"question_count\": 10}",
+  "result": "success"
+}
+```
 
 ---
 

@@ -2,8 +2,12 @@
 name: bswi-infobrief
 description: Formatiert Markdown-Infobriefe im Corporate Design der BS:WI Hamburg. Nutze diesen Skill, um Infobriefe professionell zu gestalten, HTML/PDF zu exportieren und das CI der Schule (Farben, Logo, Layout) anzuwenden.
 license: MIT
-agent: Education
-allowed-tools: Read, Glob, Bash(python:*), Write, Edit
+allowed-tools:
+  - Read
+  - Glob
+  - Bash(python:*)
+  - Write
+  - Edit
 ---
 
 # BS:WI Infobrief Formatter
@@ -113,3 +117,26 @@ Der Skill erkennt automatisch:
 ## Weitere Optionen
 
 Siehe [REFERENCE.md](REFERENCE.md) für vollständige API-Dokumentation und erweiterte Optionen.
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | doc:format_infobrief |
+| **Context** | input_file, output_format, sections_count |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "doc:format_infobrief",
+  "context": "{\"input_file\": \"2025-12-16 - Infobrief.md\", \"output_format\": \"html\", \"sections_count\": 5}",
+  "result": "success"
+}
+```

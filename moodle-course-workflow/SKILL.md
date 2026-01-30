@@ -2,7 +2,6 @@
 name: moodle-course-workflow
 description: Complete workflow for creating Moodle courses with H5P content integration from WordPress. Use when creating educational courses, adding interactive H5P modules to Moodle, or automating course deployment.
 license: MIT
-agent: Education
 ---
 
 # Moodle Course Creation Workflow
@@ -318,6 +317,29 @@ Course: "Professional Cannabis Cultivation (CEA)"
 
 - `references/course-templates.md` - Example course structures
 - `references/h5p-embed-examples.md` - H5P embedding patterns
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | moodle:create_course |
+| **Context** | course_name, course_id, section_count, h5p_count |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "moodle:create_course",
+  "context": "{\"course_name\": \"Cannabis Cultivation CEA\", \"course_id\": 15, \"section_count\": 12, \"h5p_count\": 5}",
+  "result": "success"
+}
+```
 
 ---
 

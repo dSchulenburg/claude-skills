@@ -2,8 +2,6 @@
 name: debug-agent
 description: Specialized debugging agent with Playwright browser automation for end-to-end testing, visual verification, and interactive debugging of web applications and MCP tools.
 license: MIT
-agent: DevOps
-version: "1.0"
 ---
 
 # Debug Agent
@@ -335,6 +333,29 @@ ref: "execute-workflow", "executions-tab", "execution-{id}"
 - [ ] Permissions verified
 - [ ] Screenshots saved
 - [ ] Bug report created (if issue found)
+```
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | debug:test |
+| **Context** | tool_under_test, target_url, screenshots_taken, issues_found |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "debug:test",
+  "context": "{\"tool_under_test\": \"moodle_create_quiz\", \"target_url\": \"moodle.dirk-schulenburg.net\", \"screenshots_taken\": 3, \"issues_found\": 1}",
+  "result": "success"
+}
 ```
 
 ---

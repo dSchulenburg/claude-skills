@@ -2,7 +2,6 @@
 name: h5p-designer
 description: Analysiere, debugge und optimiere H5P-Dateien für bessere Benutzerfreundlichkeit und Design.
 license: MIT
-agent: Education
 ---
 
 # H5P Designer Skill
@@ -191,6 +190,29 @@ h5p-designer/
 ├── SKILL.md              # Diese Dokumentation
 └── scripts/
     └── h5p_designer.py   # Hauptscript
+```
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | h5p:design |
+| **Context** | h5p_file, content_type, issues_found, fixes_applied |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "h5p:design",
+  "context": "{\"h5p_file\": \"scrum-rollen.h5p\", \"content_type\": \"DragQuestion\", \"issues_found\": 8, \"fixes_applied\": 2}",
+  "result": "success"
+}
 ```
 
 ## Changelog

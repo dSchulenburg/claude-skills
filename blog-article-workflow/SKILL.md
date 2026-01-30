@@ -2,9 +2,6 @@
 name: blog-article-workflow
 description: Complete workflow for creating and publishing blog articles with Claude AI and WordPress MCP integration. Use when creating educational blog posts, tutorial articles, or documentation that needs to be published to WordPress.
 license: MIT
-agent: Personal
-mcp_servers:
-  - wordpress
 ---
 
 # Blog Article Creation Workflow
@@ -541,6 +538,29 @@ wp_update_post({
 2. **This week:** Write and publish first article using this workflow
 3. **Next week:** Review analytics, iterate on what works
 4. **Long-term:** Build article templates for common topics
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | personal |
+| **Action** | blog:publish_article |
+| **Context** | title, post_id, word_count, featured_image_id |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "personal",
+  "action": "blog:publish_article",
+  "context": "{\"title\": \"H5P + WordPress Tutorial\", \"post_id\": 456, \"word_count\": 2100, \"featured_image_id\": 123}",
+  "result": "success"
+}
+```
 
 ---
 

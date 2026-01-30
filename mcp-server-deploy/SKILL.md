@@ -2,7 +2,6 @@
 name: mcp-server-deploy
 description: Deploy MCP servers from local development to production via Git and Docker. Handles code push, SSH deployment, container rebuild, and health verification.
 license: MIT
-agent: DevOps
 ---
 
 # MCP Server Deployment Workflow
@@ -326,6 +325,29 @@ Examples:
 - `feat: add moodle_create_quiz tool`
 - `fix: handle empty response in wp_list_posts`
 - `refactor: extract validation logic`
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | deploy:mcp_server |
+| **Context** | server_name, version, health_status |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "deploy:mcp_server",
+  "context": "{\"server_name\": \"wp-mcp\", \"version\": \"1.2.0\", \"health_status\": \"OK\"}",
+  "result": "success"
+}
+```
 
 ---
 

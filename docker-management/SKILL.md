@@ -2,7 +2,6 @@
 name: docker-management
 description: Manage Docker containers on the Hetzner server. Check status, view logs, restart services, and troubleshoot container issues via SSH.
 license: MIT
-agent: DevOps
 ---
 
 # Docker Management
@@ -419,6 +418,29 @@ ssh hetzner 'docker ps -q | xargs -I {} docker logs {} 2>&1 | grep -i error | ta
 
 # Disk cleanup
 ssh hetzner 'docker system prune -f && docker image prune -f'
+```
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | devops |
+| **Action** | docker:manage |
+| **Context** | container, operation, status |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "devops",
+  "action": "docker:manage",
+  "context": "{\"container\": \"n8n\", \"operation\": \"restart\", \"status\": \"running\"}",
+  "result": "success"
+}
 ```
 
 ---

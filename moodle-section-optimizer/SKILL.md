@@ -2,7 +2,6 @@
 name: moodle-section-optimizer
 description: Optimiert Moodle-Kursabschnitte basierend auf 4K-Analyse. Erstellt Labels mit Bildern, generiert H5P-Inhalte, fügt Struktur-Elemente hinzu. Nutze nach moodle-section-analyzer oder wenn konkrete Verbesserungen umgesetzt werden sollen.
 license: MIT
-agent: Education
 ---
 
 # Moodle Section Optimizer
@@ -398,6 +397,29 @@ Siehe: [[Moodle-Learnings#KRITISCH moodledata Berechtigungsproblem]]
 - [[Moodle]] - MCP Server Dokumentation v2.4.0+
 - [[Moodle-Learnings]] - Troubleshooting & Best Practices
 - [[local_h5p_api Plugin]] - H5P Upload/Embed API
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | moodle:optimize_section |
+| **Context** | course_id, section_num, labels_added, h5p_added, recipe |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "moodle:optimize_section",
+  "context": "{\"course_id\": 6, \"section_num\": 2, \"labels_added\": 3, \"h5p_added\": 2, \"recipe\": \"vollstaendig\"}",
+  "result": "success"
+}
+```
 
 ---
 

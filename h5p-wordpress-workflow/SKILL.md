@@ -2,7 +2,6 @@
 name: h5p-wordpress-workflow
 description: Complete workflow for creating and publishing H5P interactive content to WordPress. Use when users want to create interactive educational content (quizzes, videos, presentations), integrate H5P with WordPress, or automate H5P content publishing workflows with MCP servers.
 license: MIT
-agent: Education
 ---
 
 # H5P + WordPress Workflow
@@ -287,6 +286,29 @@ After creating H5P content:
 
 **Before automation:** 30-45 minutes (manual upload, formatting, embedding)
 **After automation:** ~10 minutes (mostly content review)
+
+---
+
+## Logging
+
+Bei Ausführung dieses Skills wird automatisch geloggt:
+
+| Feld | Wert |
+|------|------|
+| **Agent** | education |
+| **Action** | h5p:wordpress_publish |
+| **Context** | h5p_type, media_id, post_id, embed_method |
+| **Result** | success/failure |
+
+**Beispiel-Log:**
+```json
+{
+  "agent": "education",
+  "action": "h5p:wordpress_publish",
+  "context": "{\"h5p_type\": \"InteractiveVideo\", \"media_id\": 123, \"post_id\": 456, \"embed_method\": \"shortcode\"}",
+  "result": "success"
+}
+```
 
 ---
 
