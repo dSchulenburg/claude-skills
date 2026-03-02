@@ -1,6 +1,6 @@
 # Blog Article with Images - Quick Reference
 
-**Schnell-Anleitung für Blog-Artikel mit undraw.co, Screenshots und Emoji**
+**Schnell-Anleitung für Blog-Artikel mit Pexels, undraw.co, Screenshots und Emoji**
 
 ---
 
@@ -8,52 +8,87 @@
 
 ### Checkliste
 
-- [ ] **Featured Image** ausgewählt (undraw.co)
-- [ ] **1-3 Inline Illustrationen** heruntergeladen
+- [ ] **Featured Image** via Pexels (`--auto-image`) oder undraw.co
+- [ ] **1-3 Inline Illustrationen** (Pexels oder undraw.co)
 - [ ] **Screenshots** gemacht (falls Tutorial)
 - [ ] **Emoji-Set** definiert
 - [ ] **Alt-Texte** vorbereitet
 
 ---
 
-## 1️⃣ undraw.co Workflow (2 Minuten)
+## 1️⃣ Bild-Workflow: Pexels (30 Sekunden)
 
+**Empfohlen: Automatisch via wp-post-v2.py**
+```bash
+# Bild suchen, optimieren, hochladen - alles in einem Befehl
+python tools/wp-post-v2.py create \
+  --title "Mein Artikel" --file artikel.md \
+  --auto-image "coffee laptop workspace" \
+  --status draft
+```
+
+**Nur Bild suchen (Preview):**
+```bash
+python tools/wp-post-v2.py find-image "classroom education modern" --limit 5
+```
+
+**Query-Tipps:** Englisch, spezifisch + Kontext + Adjektive
+```
+Gut:    "modern office bright workspace"
+Schlecht: "work"
+```
+
+**undraw.co** bleibt Option für abstrakte Inline-Illustrationen:
 ```
 1. Gehe zu https://undraw.co/illustrations
 2. Suche nach Keyword (z.B. "education", "coding")
 3. Download PNG oder SVG
 4. Umbenennen: article-slug-purpose.png
-5. Optional: Komprimieren mit TinyPNG.com
-```
-
-**Beliebte Suchbegriffe:**
-```
-Lernen:     education, studying, online_learning
-Tech:       coding, programming, server, data
-Workflow:   working, collaboration, setup_wizard
-Erfolg:     celebration, feeling_proud, achievement
 ```
 
 ---
 
-## 2️⃣ MCP Upload (30 Sekunden pro Bild)
+## 2️⃣ Publishing-Befehle
+
+### wp-post-v2.py (empfohlen)
+
+```bash
+# Neuer Post mit Auto-Image
+python tools/wp-post-v2.py create \
+  --title "Titel" --file artikel.md \
+  --auto-image "suchbegriffe" --status draft
+
+# Post aktualisieren + Bild nachträglich
+python tools/wp-post-v2.py update \
+  --id 456 --auto-image "neue suchbegriffe" --status publish
+
+# Einzelbild hochladen (mit Optimierung)
+python tools/wp-post-v2.py upload-image --file foto.jpg --optimize
+
+# Batch-Upload ganzer Ordner
+python tools/wp-post-v2.py batch-upload --folder ./bilder/ --optimize
+
+# Posts auflisten
+python tools/wp-post-v2.py list --search "Tutorial" --status draft
+```
+
+### MCP-Tools (Alternative)
 
 ```javascript
-// Featured Image
-const hero = await MyWordPressMCP:wp_upload_media_from_url({
+// Featured Image hochladen
+const media = await wp_upload_media_from_url({
   fileUrl: "https://example.com/hero.png",
   title: "Article Title - Hero Image",
-  altText: "Illustration showing [describe what's in image]"
+  altText: "Description for accessibility and SEO"
 });
-// Merke dir: hero.id
 
-// Inline Illustrationen
-const img1 = await MyWordPressMCP:wp_upload_media_from_url({
-  fileUrl: "https://example.com/workflow.png",
-  title: "Workflow Illustration",
-  altText: "Diagram of workflow from A to B"
+// Post mit Featured Image erstellen
+await wp_create_post({
+  title: "Article Title",
+  content: articleHtml,
+  status: "draft",
+  featuredMediaId: media.id  // Featured Image wird automatisch gesetzt!
 });
-// Merke dir: img1.id, img1.source_url
 ```
 
 ---
@@ -62,9 +97,9 @@ const img1 = await MyWordPressMCP:wp_upload_media_from_url({
 
 ### Featured Image
 ```javascript
-// In wp_create_post / wp_update_post
-// Note: Featured image muss aktuell noch manuell in WP gesetzt werden
-// featuredImageId parameter noch nicht verfügbar
+// featuredMediaId funktioniert in wp_create_post UND wp_update_post:
+wp_create_post({ ..., featuredMediaId: 123 });
+wp_update_post({ id: 456, featuredMediaId: 123 });
 ```
 
 ### Inline Illustration (Zentriert)
@@ -162,21 +197,6 @@ const img1 = await MyWordPressMCP:wp_upload_media_from_url({
 <!-- /wp:heading -->
 ```
 
-**Step-by-Step:**
-```html
-<!-- wp:paragraph -->
-<p><strong>Schritt 1:</strong> 🎯 Definiere Ziel</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:paragraph -->
-<p><strong>Schritt 2:</strong> ✏️ Schreibe Content</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:paragraph -->
-<p><strong>Schritt 3:</strong> 🚀 Publiziere</p>
-<!-- /wp:paragraph -->
-```
-
 ---
 
 ## 5️⃣ Best Practices
@@ -190,114 +210,95 @@ const img1 = await MyWordPressMCP:wp_upload_media_from_url({
 2000+ Wörter:      3-5 Illustrationen + Emoji
 ```
 
-**Placement:**
-```
-[Hero Image]
-Intro (200-300w)
-[Illustration 1]
-Section (300-400w)
-[Screenshot 1]
-Section (300-400w)
-[Illustration 2]
-Conclusion (200-300w)
-```
-
 ### Alt Text Formeln
 
 **Illustrationen:**
 ```
 "Illustration showing [main concept/action]"
 "Diagram of [process/workflow]"
-"Conceptual illustration depicting [idea]"
 ```
 
 **Screenshots:**
 ```
 "Screenshot of [tool/interface] with [key element] highlighted"
-"Screenshot showing [step/action] in [tool]"
 ```
 
 ### Dateibenennung
 
 ```
-article-slug-hero.png          # Featured Image
+article-slug-hero.webp         # Featured Image (WebP, optimiert)
 article-slug-workflow.png      # Inline Illustration
 article-slug-screenshot-1.png  # Screenshot 1
-article-slug-screenshot-2.png  # Screenshot 2
 ```
 
 ---
 
-## 6️⃣ Kompletter Workflow (15 Min)
+## 6️⃣ Kompletter Workflow (~10 Min)
 
 ```
-Minute 1-3:   Artikel-Struktur schreiben
-Minute 4-5:   undraw.co Illustrationen suchen & downloaden
-Minute 6-7:   Screenshots machen (falls Tutorial)
-Minute 8-10:  Artikel-Content schreiben
-Minute 11-12: Bilder via MCP uploaden
-Minute 13-14: HTML mit embedded images erstellen
-Minute 15:    Via MCP als Draft publizieren
+Minute 1-3:   Artikel-Struktur & Content schreiben (Markdown)
+Minute 4-6:   Weitere Inhalte, Beispiele, Screenshots
+Minute 7-8:   Optional: undraw.co Inline-Illustrationen
+Minute 9:     wp-post-v2.py create --auto-image (30 Sek)
+Minute 10:    Preview in WordPress, ggf. Feintuning
 ```
+
+**Bildworkflow-Vergleich:**
+| Schritt | Alt (v1, ~15 Min) | Neu (v2, ~30 Sek) |
+|---------|--------------------|--------------------|
+| Bild suchen | undraw.co manuell | Pexels automatisch |
+| Optimieren | TinyPNG manuell | WebP automatisch |
+| Hochladen | MCP/manuell | Integriert |
+| Featured setzen | Manuell in WP | featuredMediaId |
 
 ---
 
-## 7️⃣ MCP Vollautomatisierung
+## 7️⃣ Vollautomatisierung mit wp-post-v2.py
 
-**Komplett-Script:**
+**Einzelner Artikel:**
+```bash
+python tools/wp-post-v2.py create \
+  --title "Docker & n8n: Automation Setup" \
+  --file docker-n8n-artikel.md \
+  --auto-image "docker container automation server" \
+  --status publish
+```
 
-```javascript
-// 1. Bilder hochladen
-const images = {
-  hero: await MyWordPressMCP:wp_upload_media_from_url({
-    fileUrl: "https://example.com/hero.png",
-    title: "Docker Tutorial - Hero",
-    altText: "Illustration of Docker container deployment"
-  }),
-  workflow: await MyWordPressMCP:wp_upload_media_from_url({
-    fileUrl: "https://example.com/workflow.png",
-    title: "Docker Workflow Diagram",
-    altText: "Diagram showing Docker setup process"
-  })
-};
+**Artikel-Serie (Batch):**
+```bash
+for f in teil-1.md teil-2.md teil-3.md; do
+  python tools/wp-post-v2.py create \
+    --title "Tutorial $(basename ${f%.md})" \
+    --file "$f" \
+    --auto-image "tutorial education technology" \
+    --status draft
+done
+```
 
-// 2. HTML mit images bauen
-const articleHtml = `
-<!-- wp:paragraph -->
-<p>Intro text... 🚀</p>
-<!-- /wp:paragraph -->
-
-<!-- wp:image {"align":"center","id":${images.workflow.id}} -->
-<figure class="wp-block-image aligncenter">
-  <img src="${images.workflow.source_url}" 
-       alt="${images.workflow.altText}" 
-       class="wp-image-${images.workflow.id}"/>
-  <figcaption class="wp-element-caption">Workflow overview</figcaption>
-</figure>
-<!-- /wp:image -->
-
-<!-- More content... -->
-`;
-
-// 3. Artikel publizieren
-await MyWordPressMCP:wp_create_post({
-  title: "Docker & n8n: Automation Setup",
-  content: articleHtml,
-  status: "draft"
-});
-// Note: Featured image manuell setzen in WP Admin
+**Nachträglich Bild hinzufügen:**
+```bash
+python tools/wp-post-v2.py update --id 456 \
+  --auto-image "office workspace productivity"
 ```
 
 ---
 
 ## 8️⃣ Troubleshooting
 
+**Problem:** Pexels findet keine passenden Bilder
+```
+✓ Englische Suchbegriffe verwenden
+✓ Spezifischer suchen: "coffee laptop" statt "work"
+✓ Adjektive hinzufügen: "modern bright office"
+→ Fallback: undraw.co oder manueller Upload
+```
+
 **Problem:** Bild-Upload schlägt fehl
 ```
-✓ URL öffentlich zugänglich?
-✓ Datei <64MB?
+✓ PEXELS_API_KEY in .env gesetzt?
+✓ Pillow installiert? (pip install Pillow)
 ✓ WordPress upload_max_filesize erhöht?
-→ Fallback: Manueller Upload in WP Media Library
+→ Fallback: wp_upload_media_from_url via MCP
 ```
 
 **Problem:** Bild wird nicht angezeigt
@@ -308,20 +309,13 @@ await MyWordPressMCP:wp_create_post({
 → Test in WP Preview Mode
 ```
 
-**Problem:** Emoji werden nicht angezeigt
-```
-✓ UTF-8 Encoding im HTML?
-✓ WordPress charset richtig?
-→ Emoji funktionieren normalerweise out-of-the-box
-```
-
 ---
 
 ## 9️⃣ Checkliste vor Publish
 
-- [ ] Featured Image gesetzt (manuell in WP)
+- [ ] Featured Image gesetzt (via `--auto-image` oder MCP)
 - [ ] Alle inline images haben Alt Text
-- [ ] Images sind komprimiert (<500KB)
+- [ ] Images sind optimiert (automatisch via wp-post-v2.py)
 - [ ] Emoji konsistent verwendet
 - [ ] Captions bei allen wichtigen Images
 - [ ] Mobile Preview gecheckt
@@ -334,22 +328,24 @@ await MyWordPressMCP:wp_create_post({
 
 **Tools:**
 ```
-Illustrationen:  undraw.co (kostenlos, open source)
-Komprimierung:   tinypng.com (kostenlos)
-Screenshots:     Win+Shift+S (Windows), Cmd+Shift+4 (Mac)
-Annotation:      Photopea.com (kostenlos), Snagit (paid)
-Emoji:           emojipedia.org (Referenz)
+Bilder (primär):  Pexels API (kostenlos, via wp-post-v2.py)
+Illustrationen:   undraw.co (kostenlos, open source)
+Komprimierung:    Automatisch via wp-post-v2.py (WebP)
+                  TinyPNG.com (optional, für manuelle Optimierung)
+Screenshots:      Win+Shift+S (Windows), Cmd+Shift+4 (Mac)
+Annotation:       Photopea.com (kostenlos), Snagit (paid)
+Emoji:            emojipedia.org (Referenz)
 ```
 
 **Dokumentation:**
 ```
 Skills:          blog-article-workflow/SKILL.md
                  blog-article-workflow/workflows/images-and-media.md
-Examples:        blog-article-workflow/examples/docker-n8n-article-test.md
+CLI-Tool:        tools/wp-post-v2.py (--help für alle Optionen)
 MCP Server:      wp-mcp/README.md
 ```
 
 ---
 
-*Zuletzt aktualisiert: 03.01.2026*
-*Version: 1.0*
+*Zuletzt aktualisiert: 15.02.2026*
+*Version: 2.0 - Pexels API + Auto-Image Integration*

@@ -254,6 +254,37 @@ Abschnitt X: [Titel]
 
 ## Best Practices
 
+### KRITISCH: Umlaute mit HTML-Entities
+
+**Bei allen Moodle MCP Aufrufen MÜSSEN Umlaute als HTML-Entities kodiert werden!**
+
+Direkte UTF-8 Umlaute werden beim Transport falsch kodiert. Verwende stattdessen:
+
+| Zeichen | HTML-Entity |
+|---------|-------------|
+| ä | `&auml;` |
+| ö | `&ouml;` |
+| ü | `&uuml;` |
+| Ä | `&Auml;` |
+| Ö | `&Ouml;` |
+| Ü | `&Uuml;` |
+| ß | `&szlig;` |
+
+**Beispiel:**
+```html
+<!-- FALSCH - wird kaputt übertragen -->
+<p>Bürobedarf, Geschäftsfähigkeit, Großhandel</p>
+
+<!-- RICHTIG - HTML-Entities verwenden -->
+<p>B&uuml;robedarf, Gesch&auml;ftsf&auml;higkeit, Gro&szlig;handel</p>
+```
+
+Diese Regel gilt für:
+- `moodle_create_label` (labelText)
+- `moodle_create_page` (pageName, content)
+- `moodle_update_section` (name, summary)
+- Alle anderen Moodle MCP Tools mit Textinhalten
+
 ### Struktur
 - **Konsistente Nummerierung:** "1 Titel", "2 Titel" (nicht "LS01")
 - **Abschnitt 0** immer für Meta-Infos (Willkommen, Foren)

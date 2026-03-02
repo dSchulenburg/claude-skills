@@ -37,7 +37,7 @@ echo.
 
 REM DevOps Agent Skills
 echo [DevOps Agent]
-for %%S in (coding-agent debug-agent documentation-agent docker-management mcp-server-deploy n8n-workflow) do (
+for %%S in (coding-agent debug-agent documentation-agent docker-management mcp-server-deploy mcp-key-manager n8n-workflow) do (
     if exist "%SOURCE_DIR%\%%S\SKILL.md" (
         xcopy /E /I /Y "%SOURCE_DIR%\%%S" "%TARGET_DIR%\%%S" >nul 2>&1
         echo   [OK] %%S
@@ -61,7 +61,7 @@ echo.
 
 REM Personal Agent Skills
 echo [Personal Agent]
-for %%S in (blog-article-workflow recherche-workflow) do (
+for %%S in (blog-article-workflow recherche-workflow tagebuch) do (
     if exist "%SOURCE_DIR%\%%S\SKILL.md" (
         xcopy /E /I /Y "%SOURCE_DIR%\%%S" "%TARGET_DIR%\%%S" >nul 2>&1
         echo   [OK] %%S

@@ -95,6 +95,79 @@ create_true_false("Mein Quiz", questions, "quiz-name")
 
 ---
 
+## 📧 Personal Agent Skills (NEU)
+
+### 6. email-send
+**Was es macht:**
+- Email-Komposition mit Templates
+- Review-Workflow vor dem Versand
+- SMTP-Versand über IMAP MCP Server
+- Unterstützt onecom, gmx, gmail Accounts
+
+**Wann wird es aktiviert:**
+- "Schreibe eine Email an [Empfänger]"
+- "Sende eine Nachricht an [Person]"
+- "Verfasse eine Email über [Thema]"
+
+---
+
+### 7. email-to-action
+**Was es macht:**
+- Analysiert Inbox-Emails automatisch
+- Kategorisiert: Rechnungen, Termine, Admin, Newsletter, Spam
+- Schlägt Aktionen vor: Archivieren, Löschen, Termin anlegen
+- Bulk-Move für mehrere Emails
+
+**Wann wird es aktiviert:**
+- "Was ist in meinen Emails los?"
+- "Sortiere meine Inbox"
+- "Räume mein Postfach auf"
+
+---
+
+### 8. weekly-digest
+**Was es macht:**
+- Wochenrückblick aus Activity Logs
+- Email-Statistiken (empfangen/gesendet)
+- Skills-Nutzung und Erfolgsraten
+- Trends und Empfehlungen
+
+**Wann wird es aktiviert:**
+- "Erstelle einen Wochenrückblick"
+- "Was habe ich diese Woche gemacht?"
+- "Weekly Review"
+
+---
+
+### 9. idea-capture
+**Was es macht:**
+- Schnelle Notiz-Erfassung
+- Automatische Kategorisierung (code, content, learning, project)
+- Tag-Vorschläge basierend auf Inhalt
+- Verlinkung zu ähnlichen Notizen in Obsidian
+
+**Wann wird es aktiviert:**
+- "Notiere: [Idee]"
+- "Merke dir: [Gedanke]"
+- "Schnelle Notiz: [Text]"
+- "Ich hab eine Idee: [Beschreibung]"
+
+---
+
+### 10. state-sync
+**Was es macht:**
+- Synchronisiert Agent-State von n8n nach Obsidian Vault
+- Aggregiert Aktivitaeten der letzten 7 Tage
+- Generiert Statistiken pro Agent (education, devops, personal)
+- Schreibt in Vault/_context/*.md
+
+**Wann wird es aktiviert:**
+- "/state-sync"
+- "Synchronisiere den Agent-State"
+- "Update die State-Dateien"
+
+---
+
 ## 🚀 Installation
 
 ### Schritt 1: Script ausführen
@@ -310,8 +383,12 @@ Mehrere Antworten: *Antwort1/Antwort2/Antwort3*
 | blog-article-workflow | SKILL.md | workflows/, examples/ |
 | h5p-wordpress-workflow | SKILL.md | references/h5p-content-types.md |
 | h5p-generator | SKILL.md | scripts/h5p_generator.py, references/h5p-json-structure.md |
-| recherche-workflow | SKILL.md | - |
-| bswi-infobrief | SKILL.md | - |
+| recherche-workflow | SKILL.md | sources/feeds.md, sources/Newsquellen.md |
+| bswi-infobrief | SKILL.md | templates/ |
+| **email-send** | SKILL.md | templates/ |
+| **email-to-action** | SKILL.md | references/ |
+| **weekly-digest** | SKILL.md | - |
+| **idea-capture** | SKILL.md | templates/ |
 
 ---
 
@@ -331,6 +408,13 @@ Mehrere Antworten: *Antwort1/Antwort2/Antwort3*
 ---
 
 ## 🆕 Changelog
+
+### 2026-02-03
+- ⭐ **NEU:** Personal Agent Skills hinzugefügt
+  - **email-send**: Email-Komposition mit Review-Workflow und SMTP-Versand
+  - **email-to-action**: Inbox-Analyse und automatische Kategorisierung
+  - **weekly-digest**: Wochenrückblick aus Activity Logs und Email-Stats
+  - **idea-capture**: Schnelle Notiz-Erfassung mit Obsidian-Integration
 
 ### 2026-01-10
 - ⭐ **NEU:** h5p-generator Skill hinzugefügt

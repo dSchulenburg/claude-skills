@@ -5,14 +5,15 @@ Complete guide for integrating visual assets (undraw.co illustrations, screensho
 ## Overview
 
 **Visual Types Used:**
-- 🎨 **undraw.co illustrations** - Conceptual visuals, hero images
-- 📸 **Screenshots** - Tutorial steps, UI demonstrations  
+- 📷 **Pexels Stock Photos** - Featured Images, Hero Images (automatisch optimiert)
+- 🎨 **undraw.co illustrations** - Conceptual visuals, Inline-Illustrationen
+- 📸 **Screenshots** - Tutorial steps, UI demonstrations
 - 🎯 **Icons/Emoji** - Feature lists, quick visual markers
 
 **Integration Methods:**
+- **wp-post-v2.py** (empfohlen) - Pexels + Optimierung + Upload in einem Befehl
+- MCP Upload (`wp_upload_media_from_url`, `wp_upload_media_base64`)
 - Manual upload to WordPress Media Library
-- Automated upload via MCP (`wp_upload_media_from_url`)
-- Direct embedding in article HTML
 
 ---
 
@@ -30,7 +31,76 @@ Tools: 🛠️ 🔧 💻 📱 🖥️
 
 ---
 
-## Workflow 1: undraw.co Illustrations
+## Workflow 0: Pexels Auto-Image (30 Sekunden)
+
+**Schnellste Option für Featured Images - komplett automatisiert.**
+
+### One-Command Workflow
+
+```bash
+# Artikel erstellen mit automatischem Featured Image
+python tools/wp-post-v2.py create \
+  --title "Mein Artikel" --file artikel.md \
+  --auto-image "coffee laptop workspace modern" \
+  --status draft
+```
+
+**Was passiert automatisch:**
+1. Pexels API sucht passendes Bild (Landscape-Orientierung)
+2. Original wird heruntergeladen (~1-3MB)
+3. Smart Crop auf 1200x630px (Fokus Mitte)
+4. Konvertierung zu WebP, 85% Qualität (~52KB)
+5. Upload via `wp_upload_media_base64`
+6. `featuredMediaId` wird automatisch gesetzt
+
+### Nur Bilder suchen (Preview)
+
+```bash
+# 5 Bilder anzeigen
+python tools/wp-post-v2.py find-image "classroom education modern" --limit 5
+
+# Erstes Bild herunterladen
+python tools/wp-post-v2.py find-image "sunset mountains" --download
+```
+
+### Query-Optimierung
+
+**Gute Queries (spezifisch + Kontext + Adjektive):**
+```
+"modern office bright workspace"       (statt "work")
+"students classroom digital learning"  (statt "education")
+"coffee laptop morning productivity"   (statt "coffee")
+"server room technology blue light"    (statt "technology")
+```
+
+**Tipps:**
+- Englisch bevorzugt (größere Pexels-Datenbank)
+- 3-4 Keywords kombinieren
+- Adjektive für Stimmung: bright, modern, professional, cozy
+- Landscape-Bilder werden bevorzugt (besser für Featured Images)
+
+### Nachträglich Bild hinzufügen
+
+```bash
+# Bestehendem Post ein Featured Image geben
+python tools/wp-post-v2.py update --id 456 \
+  --auto-image "office workspace productivity"
+```
+
+### Setup
+
+```bash
+# Pexels API Key (kostenlos): https://www.pexels.com/api/
+# In .env Datei:
+PEXELS_API_KEY=your-key-here
+
+# Dependencies
+pip install Pillow requests python-dotenv
+```
+
+---
+
+## Workflow 1: undraw.co Illustrations (für Inline-Bilder)
 
 ### Finding the Right Illustration
 
@@ -168,11 +238,18 @@ await MyWordPressMCP:wp_create_post({
 
 ### Optimization
 
-**Before uploading:**
+**Automatisch (empfohlen):**
+```bash
+# Screenshot optimieren und hochladen
+python tools/wp-post-v2.py upload-image --file screenshot.png --optimize
+# → Resize, WebP-Konvertierung, Upload in einem Schritt
+```
+
+**Manuell (falls nötig):**
 ```
 1. Crop to relevant section
 2. Add annotations if needed
-3. Compress with TinyPNG.com
+3. Optional: TinyPNG.com für manuelle Kompression
 4. Target: <300KB per screenshot
 5. Rename: article-slug-screenshot-N.png
 ```
@@ -286,17 +363,28 @@ h5p-tutorial-screenshot-3-preview.png
 
 ```
 📁 Visual assets:
-├── 🎨 h5p-hero.png (undraw.co - Featured image)
+├── 📷 h5p-hero.webp (Pexels - Featured image, auto-optimiert)
 ├── 🎨 h5p-workflow.png (undraw.co - Inline illustration)
 ├── 📸 h5p-screenshot-1-editor.png (Screenshot of H5P editor)
 ├── 📸 h5p-screenshot-2-preview.png (Screenshot of preview)
 └── 🎯 Emoji (✅, 🚀, ⏱️, 💡, etc.)
 ```
 
+### Publishing Command
+
+```bash
+# Featured Image wird automatisch von Pexels geholt und optimiert
+python tools/wp-post-v2.py create \
+  --title "H5P + WordPress: Interactive Learning in 10 Minutes" \
+  --file h5p-tutorial.md \
+  --auto-image "interactive learning digital education classroom" \
+  --status draft
+```
+
 ### Article Structure
 
 ```html
-<!-- FEATURED IMAGE: Set manually in WordPress admin after creating draft -->
+<!-- FEATURED IMAGE: Automatisch gesetzt via --auto-image -->
 
 <!-- Introduction -->
 <!-- wp:paragraph -->
@@ -379,10 +467,11 @@ h5p-tutorial-screenshot-3-preview.png
 ## Best Practices
 
 ### Image Quality
-- ✅ Compress all images (<500KB per image)
+- ✅ WebP-Format für Featured Images (automatisch via wp-post-v2.py)
+- ✅ Auto-Kompression: ~95.9% Reduktion (1.3MB → ~52KB)
 - ✅ Use PNG for screenshots (sharp text)
 - ✅ Use SVG for icons when possible
-- ✅ Optimize with TinyPNG.com before upload
+- ✅ `--optimize` Flag für manuelle Uploads
 
 ### Accessibility
 - ✅ Write descriptive alt text for every image
@@ -437,4 +526,4 @@ h5p-tutorial-screenshot-3-preview.png
 
 ---
 
-*This workflow is based on creating 50+ blog articles with undraw.co illustrations, annotated screenshots, and strategic emoji use.*
+*Version 2.0 - Pexels API + Auto-Image Integration (15.02.2026)*

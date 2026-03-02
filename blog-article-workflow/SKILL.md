@@ -14,20 +14,63 @@ Step-by-step workflow for creating high-quality blog articles from concept to pu
 
 | Tool | Zweck |
 |------|-------|
-| `wp_upload_media_from_url` | Bild hochladen, gibt Media-ID zurück |
+| `wp_upload_media_from_url` | Bild von URL hochladen, gibt Media-ID zurück |
+| `wp_upload_media_base64` | Optimiertes Bild (Base64) hochladen (WebP, Resize) |
 | `wp_create_post` | Neuen Beitrag erstellen (mit `featuredMediaId`) |
 | `wp_update_post` | Bestehenden Beitrag aktualisieren |
 | `wp_list_posts` | Beiträge auflisten |
 | `wp_list_media` | Medien in Bibliothek auflisten |
 
-**Standard-Workflow:**
+**Standard-Workflow (MCP):**
 ```
 1. wp_upload_media_from_url → Media-ID erhalten
 2. wp_create_post mit featuredMediaId → Draft erstellen
 3. User reviewed in WordPress → Publish
 ```
 
-**NIEMALS SSH oder manuelle API-Calls verwenden - immer die MCP-Tools nutzen!**
+**Empfohlen: CLI mit `wp-post-v2.py`** (Pexels + Auto-Image + Optimierung integriert, siehe nächster Abschnitt)
+
+**NIEMALS SSH oder manuelle API-Calls verwenden - immer MCP-Tools oder wp-post-v2.py nutzen!**
+
+---
+
+## Schnellstart mit wp-post-v2.py (empfohlen)
+
+**One-Command Publishing** mit automatischem Featured Image:
+
+```bash
+python tools/wp-post-v2.py create \
+  --title "Mein Artikel" --file artikel.md \
+  --auto-image "keyword1 keyword2 kontext" \
+  --status publish
+```
+
+**Setup:**
+```bash
+# Pexels API Key (kostenlos): https://www.pexels.com/api/
+# In .env oder als Environment Variable:
+PEXELS_API_KEY=your-key-here
+
+# Dependencies
+pip install Pillow requests python-dotenv
+```
+
+**Alle Befehle:**
+
+| Befehl | Funktion |
+|--------|----------|
+| `create` | Post erstellen (+ `--auto-image`, `--image`, `--file`) |
+| `update` | Post aktualisieren (`--id`, `--auto-image`, `--status`) |
+| `find-image` | Pexels-Bildsuche mit Preview (`--download`) |
+| `upload-image` | Einzelbild hochladen (`--optimize` für WebP) |
+| `batch-upload` | Ordner-Upload (`--folder`, `--optimize`) |
+| `list` | Posts auflisten (`--search`, `--status`) |
+
+**Query-Optimierung für bessere Bilder:**
+- Spezifisch: `"coffee laptop workspace"` statt `"work"`
+- Kontext: `"classroom students learning"` statt `"education"`
+- Adjektive: `"modern office bright"` statt `"office"`
+- Englisch bevorzugt (größere Pexels-Datenbank)
 
 ---
 
@@ -61,13 +104,11 @@ Use this skill when:
 3. Format lists, quotes, code blocks
 4. Optimize for readability
 
-### Phase 4: Publishing (2-5 min)
-1. Upload to WordPress (manual or via MCP)
-2. Add featured image
-3. Set categories/tags
-4. Preview and publish
+### Phase 4: Publishing (1-2 min)
+1. `wp-post-v2.py create --auto-image` (Bild + Post in einem Befehl)
+2. Preview and publish
 
-**Total Time:** 30-60 minutes per article
+**Total Time:** 25-50 minutes per article
 
 ## Phase 1: Concept & Structure
 
@@ -126,10 +167,10 @@ Before writing, collect:
 **Types of visuals to include:**
 
 1. **Featured Image (Hero Image)**
-   - Source: undraw.co illustrations or custom design
-   - Size: 1200x630px (optimal for social sharing)
-   - Theme: Match article topic and brand colors
-   - Upload via MCP before/during article creation
+   - **Primär:** Pexels API via `--auto-image` (automatisch optimiert)
+   - Size: 1200x630px (automatisch via wp-post-v2.py)
+   - Format: WebP, ~52KB (95.9% Kompression)
+   - Alternativ: undraw.co Illustrationen für abstraktere Themen
 
 2. **Inline Illustrations**
    - Use undraw.co for concepts/workflows
@@ -164,14 +205,14 @@ Conclusion (200-300 words)
 ```
 
 **Asset preparation checklist:**
-- [ ] Featured image selected/created (undraw.co)
-- [ ] Inline illustrations downloaded from undraw.co
+- [ ] Featured image via Pexels (`--auto-image`) oder undraw.co
+- [ ] Inline illustrations (undraw.co oder Pexels)
 - [ ] Screenshots taken and annotated
 - [ ] Icons identified (emoji or icon library)
-- [ ] All images optimized (<500KB each)
+- [ ] Bilder optimiert (automatisch via wp-post-v2.py, ~52KB WebP)
 - [ ] Alt text written for each image
 
-### Undraw.co Workflow
+### Undraw.co Workflow (für Inline-Illustrationen)
 
 **Finding the right illustration:**
 1. Go to https://undraw.co/illustrations
@@ -358,9 +399,66 @@ Conclusion (200-300 words)
 - [ ] Code blocks use proper syntax
 - [ ] Separators between major sections
 
-## Phase 4: Publishing via MCP
+## Phase 4: Publishing
 
-### Manual Publishing
+### Empfohlen: wp-post-v2.py (One-Command)
+
+**Einzelner Artikel mit Auto-Image:**
+```bash
+python tools/wp-post-v2.py create \
+  --title "H5P + WordPress: Interactive Learning Modules in 10 Minutes" \
+  --file artikel.md \
+  --auto-image "interactive learning digital education" \
+  --status draft
+```
+
+**Artikel nachträglich mit Bild versehen:**
+```bash
+python tools/wp-post-v2.py update \
+  --id 456 \
+  --auto-image "education technology classroom" \
+  --status publish
+```
+
+**Batch-Publishing für Serien:**
+```bash
+# Artikel 1-4 erstellen
+for f in teil-1.md teil-2.md teil-3.md teil-4.md; do
+  python tools/wp-post-v2.py create \
+    --title "Serie: ${f%.md}" --file "$f" \
+    --auto-image "tutorial series learning" \
+    --status draft
+done
+```
+
+### Alternative: MCP-Tools
+
+**Step 1: Upload image and get Media-ID**
+```javascript
+const media = await wp_upload_media_from_url({
+  fileUrl: "https://example.com/image.png",
+  title: "Article Featured Image",
+  altText: "Description for SEO"
+});
+// Response includes: Media-ID: 123
+```
+
+**Step 2: Create post with Featured Image**
+```javascript
+wp_create_post({
+  title: "Article Title",
+  content: articleContent,
+  status: "draft",
+  featuredMediaId: media.id  // Sets Featured Image automatically!
+});
+```
+
+**Step 3: Review and finalize**
+- Check preview in WordPress
+- Verify formatting
+- Publish when ready
+
+### Manual Publishing (Fallback)
 
 ```
 1. Copy HTML content
@@ -371,90 +469,85 @@ Conclusion (200-300 words)
 6. Preview → Publish
 ```
 
-### Automated Publishing (with MCP)
+## Real-World Example: Tutorial-Serie (4 Artikel)
 
-**Step 1: Prepare content**
-```javascript
-const articleContent = `
-<!-- wp:paragraph -->
-<p>Article content here...</p>
-<!-- /wp:paragraph -->
-`;
+**Projekt:** Claude AI Tutorial-Serie (14.02.2026)
+
+**Phase 1: Konzept (10 min, 4 Artikel geplant)**
+- Zielgruppe: Lehrer, Bildungsinteressierte
+- Themen: Claude Grundlagen, Unterricht, Prompting, MCP
+- Struktur pro Artikel: Problem → Lösung → Workflow → Beispiele
+
+**Phase 2: Content (40 min, alle 4 Artikel)**
+- Markdown in separaten Dateien geschrieben
+- Praxis-Beispiele aus echtem Unterricht
+- Code-Beispiele und Workflows
+
+**Phase 3: Formatting (3 min)**
+- wp-post-v2.py konvertiert Markdown automatisch zu WordPress-Blocks
+
+**Phase 4: Publishing (10 min, alle 4 Artikel)**
+```bash
+# Pro Artikel: 1 Befehl, ~30 Sekunden
+python tools/wp-post-v2.py create \
+  --title "Claude AI Tutorial: Grundlagen" \
+  --file tutorial-1.md \
+  --auto-image "artificial intelligence education" \
+  --status publish
+```
+- Pexels-Bild automatisch gefunden, optimiert (1.3MB → 52KB WebP), hochgeladen
+- Featured Image automatisch gesetzt
+- Direkt als Draft oder Published
+
+**Total: 63 Minuten** für 4 fertige Artikel (statt ~4h mit altem Workflow)
+
+**Zeitvergleich pro Artikel:**
+
+| Schritt | Alt (v1) | Neu (v2) |
+|---------|----------|----------|
+| Bild suchen | 5-10 min (undraw.co, manuell) | 5 sek (Pexels, automatisch) |
+| Bild optimieren | 3-5 min (TinyPNG, manuell) | 0 sek (automatisch, WebP) |
+| Bild hochladen | 2-3 min (MCP/manuell) | 0 sek (integriert) |
+| Featured Image setzen | 1-2 min (manuell in WP) | 0 sek (featuredMediaId) |
+| **Gesamt Bildworkflow** | **11-20 min** | **~30 sek** |
+
+## Bildoptimierung
+
+### Automatische Pipeline (wp-post-v2.py)
+
+```
+Pexels API → Download Original → Resize 1200x630 → WebP 85% → Upload Base64
 ```
 
-**Step 2: Use MCP tool**
-```javascript
-wp_create_post({
-  title: "H5P + WordPress: Interactive Learning Modules in 10 Minutes",
-  content: articleContent,
-  status: "draft",  // or "publish"
-  postType: "post"
-});
+**Ergebnisse:**
+- Kompression: ~95.9% (1.3MB Original → ~52KB WebP)
+- Format: WebP mit 85% Qualität (gute Balance)
+- Smart Crop: Automatischer Bildausschnitt auf 1200x630 (Fokus Mitte)
+- EXIF: Orientierung wird korrigiert (Handy-Fotos)
+
+**Dependencies:**
+```bash
+pip install Pillow requests python-dotenv
 ```
 
-**Step 3: Review and finalize**
-- Check preview
-- Add featured image (if not done via MCP)
-- Verify formatting
-- Publish when ready
-
-### With Featured Image
-
-```javascript
-// Step 1: Upload image and get Media-ID
-const media = await wp_upload_media_from_url({
-  fileUrl: "https://example.com/image.png",
-  title: "Article Featured Image",
-  altText: "Description for SEO"
-});
-// Response includes: Media-ID: 123
-// Tipp: Verwende featuredMediaId: 123 bei wp_create_post...
-
-// Step 2: Create post with Featured Image
-wp_create_post({
-  title: "Article Title",
-  content: articleContent,
-  status: "draft",
-  featuredMediaId: media.id  // Sets Featured Image automatically!
-});
-
-// Alternative: Update existing post with Featured Image
-wp_update_post({
-  id: 456,
-  featuredMediaId: media.id
-});
+**Konfiguration** (in wp-post-v2.py):
+```python
+DEFAULT_FEATURED_SIZE = (1200, 630)  # WordPress Featured Image Standard
+DEFAULT_QUALITY = 85                  # WebP Qualität
+WEBP_ENABLED = True                   # WebP-Konvertierung
 ```
 
-## Real-World Example: This Workflow in Action
+### Manuelle Optimierung (falls nötig)
 
-**Article:** "H5P + WordPress Tutorial"
+```bash
+# Einzelbild optimieren und hochladen
+python tools/wp-post-v2.py upload-image --file foto.jpg --optimize
 
-**Phase 1: Concept (8 minutes)**
-- Defined audience: tech-savvy teachers
-- Key message: H5P is easier than you think
-- Structure: Problem → Solution → Workflow → Examples
-- Gathered: 2 real H5P files, screenshots
+# Ganzen Ordner hochladen
+python tools/wp-post-v2.py batch-upload --folder ./bilder/ --optimize
+```
 
-**Phase 2: Content (35 minutes)**
-- Hook: Personal story (10-minute module)
-- Explained 3 favorite H5P types
-- Added real examples from teaching
-- Included 10-minute workflow
-- Best practices from 2+ years use
-
-**Phase 3: Formatting (7 minutes)**
-- Converted Markdown to WordPress HTML
-- Added Gutenberg blocks
-- Formatted lists and quotes
-- Checked mobile preview
-
-**Phase 4: Publishing (3 minutes)**
-- Used MCP: `wp_create_post(...)`
-- Draft created automatically
-- Reviewed in WordPress
-- Published
-
-**Total: 53 minutes** (including this documentation)
+---
 
 ## Best Practices
 
@@ -564,4 +657,4 @@ Bei Ausführung dieses Skills wird automatisch geloggt:
 
 ---
 
-*This skill is based on producing 50+ blog articles using this exact workflow.*
+*Version 2.0 - Pexels API + Auto-Image Integration (15.02.2026)*
