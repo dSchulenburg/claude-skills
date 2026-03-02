@@ -18,7 +18,8 @@ from enum import Enum
 from sub_agents import (
     QuizAgent, CardAgent, DragAgent, AgentResult,
     DesignAgent, DesignResult,
-    CombinerAgent, CombineResult, ContainerType
+    CombinerAgent, CombineResult, ContainerType,
+    ScenarioAgent, MediaAgent
 )
 from brand_config import BrandConfig, get_brand_preset
 
@@ -121,6 +122,11 @@ class H5POrchestrator:
         'bewerten': ['multi_choice', 'single_choice'],
         'entscheiden': ['single_choice', 'multi_choice'],
         'beurteilen': ['summary', 'multi_choice'],
+
+        # Neue Operatoren (v3.1)
+        'verfassen': ['essay'],
+        'sortieren': ['sort_paragraphs', 'drag_drop'],
+        'simulieren': ['branching_scenario'],
     }
 
     # Agent-Zuordnung für Typen
@@ -137,6 +143,10 @@ class H5POrchestrator:
         'drag_drop': 'drag',
         'drag_text': 'drag',
         'mark_words': 'drag',
+        'essay': 'quiz',
+        'sort_paragraphs': 'quiz',
+        'branching_scenario': 'scenario',
+        'interactive_video': 'media',
     }
 
     def __init__(self, output_dir: Path | str = None, brand_config: BrandConfig = None):
@@ -148,6 +158,8 @@ class H5POrchestrator:
             'quiz': QuizAgent(self.output_dir),
             'card': CardAgent(self.output_dir),
             'drag': DragAgent(self.output_dir),
+            'scenario': ScenarioAgent(self.output_dir),
+            'media': MediaAgent(self.output_dir),
         }
 
         # Design Agent initialisieren (falls brand_config vorhanden)
@@ -291,9 +303,18 @@ class H5POrchestrator:
         return ContentStructure.MIXED
 
     def _suggest_container(self, element_count: int, structure: ContentStructure) -> str | None:
-        """Empfiehlt Container-Typ basierend auf Analyse"""
+        """
+        Empfiehlt Container-Typ basierend auf Analyse.
+
+        v3.0 Logik:
+        - 1 Element: Kein Container
+        - 2-3 Quiz-Typen: QuestionSet
+        - 3-5 gemischte Typen: Column
+        - 4+ gemischte mit Struktur: InteractiveBook
+        - Praesentationsformat: CoursePresentation
+        """
         if element_count <= 1:
-            return None  # Kein Container nötig
+            return None  # Kein Container noetig
 
         if element_count <= 3:
             return 'column'
@@ -301,10 +322,13 @@ class H5POrchestrator:
         if structure == ContentStructure.CHRONOLOGY:
             return 'course_presentation'
 
-        if element_count <= 5:
+        if structure == ContentStructure.PROCESS:
             return 'course_presentation'
 
-        return 'interactive_book'
+        if element_count >= 4:
+            return 'interactive_book'
+
+        return 'column'
 
     def plan(self, analysis: ContentAnalysis, content_items: list[dict] = None) -> ExecutionPlan:
         """

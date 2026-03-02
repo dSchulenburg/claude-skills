@@ -7,6 +7,8 @@ from .card_agent import CardAgent
 from .drag_agent import DragAgent
 from .design_agent import DesignAgent, DesignResult
 from .combiner_agent import CombinerAgent, CombineResult, ContainerType
+from .scenario_agent import ScenarioAgent
+from .media_agent import MediaAgent
 
 # Text-zu-Quiz Agents (NEU v2.3)
 from .text_parser_agent import (
@@ -29,6 +31,8 @@ __all__ = [
     'CombinerAgent',
     'CombineResult',
     'ContainerType',
+    'ScenarioAgent',
+    'MediaAgent',
     # Text-zu-Quiz
     'TextParserAgent',
     'ParsedQuestion',

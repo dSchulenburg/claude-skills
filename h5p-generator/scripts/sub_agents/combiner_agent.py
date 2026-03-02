@@ -88,29 +88,28 @@ class CombinerAgent:
         'H5P.SingleChoiceSet',
     }
 
-    # LEARNING: Typen die in Interactive Book (Lumi) funktionieren
-    # Getestet: 2025-01-25
+    # v3.0: Alle Typen die in Interactive Book (via H5P.Column) funktionieren
+    # H5P.Column unterstuetzt 35+ Typen
     INTERACTIVE_BOOK_COMPATIBLE = {
-        'H5P.AdvancedText',
-        'H5P.Dialogcards',    # Flashcards
-        'H5P.TrueFalse',
-        'H5P.MultiChoice',
-        'H5P.DragText',       # Alternative zu Blanks
+        'H5P.AdvancedText', 'H5P.Accordion', 'H5P.Agamotto',
+        'H5P.Audio', 'H5P.AudioRecorder', 'H5P.Blanks',
+        'H5P.Chart', 'H5P.Collage', 'H5P.CoursePresentation',
+        'H5P.Dialogcards', 'H5P.DocumentationTool', 'H5P.DragQuestion',
+        'H5P.DragText', 'H5P.Essay', 'H5P.GuessTheAnswer',
+        'H5P.IFrameEmbed', 'H5P.Image', 'H5P.ImageHotspotQuestion',
+        'H5P.ImageHotspots', 'H5P.ImageSequencing',
+        'H5P.InteractiveVideo', 'H5P.MarkTheWords', 'H5P.MemoryGame',
+        'H5P.MultiChoice', 'H5P.Questionnaire', 'H5P.QuestionSet',
+        'H5P.SingleChoiceSet', 'H5P.Summary', 'H5P.Table',
+        'H5P.Timeline', 'H5P.TrueFalse', 'H5P.Video',
     }
 
-    # LEARNING: Typen die in Interactive Book NICHT funktionieren
-    INTERACTIVE_BOOK_INCOMPATIBLE = {
-        'H5P.Blanks',         # Vorschau laedt nicht
-        'H5P.DragQuestion',   # Vorschau laedt nicht
-    }
+    # v3.0: Keine Typen sind mehr generell inkompatibel
+    # (Column-Wrapper loest die frueheren Lumi-Probleme)
+    INTERACTIVE_BOOK_INCOMPATIBLE = set()
 
-    # Fallback-Mapping fuer inkompatible Typen in Interactive Book
-    INTERACTIVE_BOOK_FALLBACK = {
-        'fill_blanks': 'drag_text',      # Blanks -> DragText
-        'FillInBlanks': 'drag_text',
-        'drag_drop': 'multi_choice',      # DragQuestion -> MultiChoice
-        'DragDrop': 'multi_choice',
-    }
+    # Fallback-Mapping nicht mehr noetig, aber fuer Backwards-Compat behalten
+    INTERACTIVE_BOOK_FALLBACK = {}
 
     # Mapping: Content-Type String -> H5P Library
     TYPE_TO_LIBRARY = {
@@ -224,10 +223,10 @@ class CombinerAgent:
         """
         Waehlt automatisch den besten Container-Typ.
 
-        Logik:
-        - Nur Quiz-Typen -> QuestionSet
-        - 2-3 Elemente -> Column
-        - 4+ Elemente -> InteractiveBook (beste Interaktivitaet)
+        v3.0 Logik:
+        - 2-3 Quiz-Typen -> QuestionSet
+        - 3-5 gemischte Typen -> Column
+        - 4+ gemischte mit Struktur -> InteractiveBook
         """
         # Pruefen ob alle Quiz-Typen
         all_quiz = all(
@@ -343,37 +342,59 @@ class CombinerAgent:
 
     def _create_course_presentation(self, title: str, extracted: List[Dict], **kwargs) -> H5PResult:
         """
-        Erstellt CoursePresentation mit Text-basierten Slides.
+        Erstellt CoursePresentation mit eingebetteten H5P-Elementen.
 
-        HINWEIS: CoursePresentation kann keine komplexen H5P-Typen einbetten.
-        Stattdessen werden informative Text-Slides erstellt, die den Inhalt
-        der einzelnen Elemente zusammenfassen.
+        v3.0: Nutzt Template-System und bettet interaktive Elemente direkt ein.
         """
+        from h5p_containers import COURSE_PRESENTATION_EMBEDDABLE
         slides = []
 
         # Titel-Slide
         slides.append({
+            'layout': 'title_only',
             'title': title,
-            'content': f'<p>Diese Präsentation enthält <strong>{len(extracted)} Lernelemente</strong>.</p><p>Navigiere mit den Pfeiltasten oder klicke auf die Punkte unten.</p>'
         })
 
         for i, data in enumerate(extracted):
             element_type = data.get('original_type', 'Unbekannt')
             content = data.get('content', {})
+            library = data.get('library', 'H5P.AdvancedText')
 
-            # Slide-Inhalt basierend auf Typ erstellen
-            slide_content = self._extract_summary_for_slide(element_type, content)
+            full_library = self.TYPE_TO_LIBRARY.get(element_type, f'{library} 1.0')
+            lib_name = full_library.split(' ')[0] if ' ' in full_library else full_library
 
-            slide = {
-                'title': f'{i+1}. {element_type.replace("_", " ").title()}',
-                'content': slide_content
-            }
+            slide_title = f'{i+1}. {element_type.replace("_", " ").title()}'
+
+            # Pruefen ob Typ einbettbar ist
+            if lib_name in COURSE_PRESENTATION_EMBEDDABLE:
+                # Quiz-Typen: QuestionSet-Wrapper entpacken
+                if lib_name in self.QUIZ_TYPES:
+                    embedded_content = self._unwrap_questionset_content(content, element_type)
+                else:
+                    embedded_content = content
+
+                slide = {
+                    'layout': 'interactive_full',
+                    'title': slide_title,
+                    'interactive': {
+                        'library': full_library,
+                        'params': embedded_content
+                    }
+                }
+            else:
+                # Fallback: Text-Zusammenfassung
+                summary = self._extract_summary_for_slide(element_type, content)
+                slide = {
+                    'layout': 'text_content',
+                    'title': slide_title,
+                    'content': summary
+                }
             slides.append(slide)
 
         # Abschluss-Slide
         slides.append({
+            'layout': 'title_only',
             'title': 'Zusammenfassung',
-            'content': f'<p>Du hast alle {len(extracted)} Elemente durchgearbeitet!</p><p>Die interaktiven Übungen findest du als separate H5P-Dateien.</p>'
         })
 
         return create_course_presentation(title, slides)
@@ -382,19 +403,20 @@ class CombinerAgent:
         """
         Erstellt Interactive Book mit echten interaktiven Elementen.
 
-        Das Interactive Book kann im Gegensatz zu CoursePresentation
-        komplexe H5P-Typen einbetten und bietet volle Interaktivitaet.
+        v3.0: Alle Kapitel nutzen H5P.Column Wrapper. Keine Typ-Einschraenkungen mehr.
         """
         chapters = []
 
-        # Einfuehrungs-Kapitel
+        # Einfuehrungs-Kapitel mit gestyltem Header
         intro_chapter = {
             'title': 'Einfuehrung',
             'elements': [
                 {
                     'library': 'H5P.AdvancedText 1.1',
                     'params': {
-                        'text': f'<h2>Willkommen</h2><p>Dieses Buch enthaelt <strong>{len(extracted)} interaktive Lernelemente</strong>.</p><p>Nutze das Inhaltsverzeichnis links zur Navigation.</p>'
+                        'text': '<div style="background:#003366;color:#fff;padding:14px 20px;border-radius:4px;margin-bottom:12px;"><h2 style="margin:0;color:#fff;">Willkommen</h2></div>'
+                              + f'<p>Dieses Buch enthaelt <strong>{len(extracted)} interaktive Lernelemente</strong>.</p>'
+                              + '<p>Nutze das Inhaltsverzeichnis links zur Navigation.</p>'
                     }
                 }
             ]
@@ -402,7 +424,6 @@ class CombinerAgent:
         chapters.append(intro_chapter)
 
         # Ein Kapitel pro Element
-        chapter_num = 0
         for i, data in enumerate(extracted):
             element_type = data.get('original_type', 'Unbekannt')
             content = data.get('content', {})
@@ -412,26 +433,7 @@ class CombinerAgent:
             full_library = self.TYPE_TO_LIBRARY.get(element_type, f'{library} 1.0')
             lib_name = full_library.split(' ')[0] if ' ' in full_library else full_library
 
-            # LEARNING: Pruefen ob Typ in Interactive Book kompatibel ist
-            if lib_name in self.INTERACTIVE_BOOK_INCOMPATIBLE:
-                # Inkompatiblen Typ als Text-Zusammenfassung darstellen
-                chapter_num += 1
-                summary = self._extract_summary_for_slide(element_type, content)
-                chapter = {
-                    'title': f'Kapitel {chapter_num}: {element_type.replace("_", " ").title()}',
-                    'elements': [
-                        {
-                            'library': 'H5P.AdvancedText 1.1',
-                            'params': {
-                                'text': f'<h2>{element_type.replace("_", " ").title()}</h2><p><em>(Dieser Inhaltstyp ist nicht interaktiv einbettbar)</em></p>{summary}'
-                            }
-                        }
-                    ]
-                }
-                chapters.append(chapter)
-                continue
-
-            chapter_num += 1
+            chapter_title = element_type.replace("_", " ").title()
 
             # Quiz-Typen: QuestionSet-Wrapper entpacken
             if lib_name in self.QUIZ_TYPES:
@@ -440,22 +442,21 @@ class CombinerAgent:
                 embedded_content = content
 
             chapter = {
-                'title': f'Kapitel {chapter_num}: {element_type.replace("_", " ").title()}',
+                'title': f'Kapitel {i+1}: {chapter_title}',
                 'elements': [
                     {
                         'library': 'H5P.AdvancedText 1.1',
                         'params': {
-                            'text': f'<h2>{element_type.replace("_", " ").title()}</h2>'
+                            'text': f'<div style="background:#003366;color:#fff;padding:14px 20px;border-radius:4px;margin-bottom:12px;"><h2 style="margin:0;color:#fff;">{chapter_title}</h2></div>'
                         }
                     },
                     {
                         'library': full_library,
                         'params': embedded_content,
-                        'subContentId': f'book-ch{chapter_num}-elem',
                         'metadata': {
                             'contentType': element_type,
                             'license': 'U',
-                            'title': f'Element {chapter_num}'
+                            'title': f'Element {i+1}'
                         }
                     }
                 ]
@@ -469,7 +470,9 @@ class CombinerAgent:
                 {
                     'library': 'H5P.AdvancedText 1.1',
                     'params': {
-                        'text': f'<h2>Geschafft!</h2><p>Du hast alle {len(extracted)} Kapitel durchgearbeitet.</p><p>Nutze die Fortschrittsanzeige oben, um deinen Lernfortschritt zu sehen.</p>'
+                        'text': '<div style="background:#003366;color:#fff;padding:14px 20px;border-radius:4px;margin-bottom:12px;"><h2 style="margin:0;color:#fff;">Geschafft!</h2></div>'
+                              + f'<p>Du hast alle {len(extracted)} Kapitel durchgearbeitet.</p>'
+                              + '<p>Nutze die Fortschrittsanzeige oben, um deinen Lernfortschritt zu sehen.</p>'
                     }
                 }
             ]

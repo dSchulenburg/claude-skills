@@ -1,27 +1,36 @@
 #!/usr/bin/env python3
 """
-H5P Container-Generatoren
+H5P Container-Generatoren v3.0
 
 Container-Typen fuer kombinierte H5P-Inhalte:
 - Column: Vertikale Anordnung von Elementen
 - QuestionSet: Quiz-Sequenz mit Auswertung
-- CoursePresentation: Slide-basierte Praesentation
-- InteractiveBook: Kapitel-basiertes Buch (TODO)
+- CoursePresentation: Slide-basierte Praesentation (mit eingebetteten H5P-Typen)
+- InteractiveBook: Kapitel-basiertes Buch (Kapitel = H5P.Column Wrapper)
 
-Diese Container koennen andere H5P-Elemente enthalten und
-werden vom Combiner Agent verwendet.
+v3.0 Aenderungen:
+- InteractiveBook: Kapitel nutzen H5P.Column 1.18 Wrapper (korrekte Struktur)
+- CoursePresentation: Template-System, UUID-basierte subContentIds, intelligente Positionierung
+- Erweiterte Kompatibilitaetslisten fuer eingebettete Typen
+- BS:WI Design-Integration (baseColor, styled Headers)
 """
 
 import json
 import zipfile
 import os
 import shutil
+import uuid
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Any
 
 from h5p_generator import H5PGenerator, H5PResult, H5PStyle, THEMES
+
+
+def _uuid() -> str:
+    """Erzeugt eine UUID v4 als subContentId"""
+    return str(uuid.uuid4())
 
 
 # =============================================================================
@@ -83,7 +92,7 @@ class ColumnGenerator(H5PGenerator):
                     "content": {
                         "library": elem.get('library', 'H5P.AdvancedText 1.1'),
                         "params": elem.get('params', {}),
-                        "subContentId": elem.get('subContentId', f"col-{i}-{hash(title) % 10000}"),
+                        "subContentId": elem.get('subContentId', _uuid()),
                         "metadata": elem.get('metadata', {
                             "contentType": "Text",
                             "license": "U",
@@ -100,18 +109,17 @@ class ColumnGenerator(H5PGenerator):
 
             # Abhaengigkeiten sammeln
             dependencies = [
-                {"machineName": "H5P.Column", "majorVersion": 1, "minorVersion": 16},
+                {"machineName": "H5P.Column", "majorVersion": 1, "minorVersion": 18},
                 {"machineName": "H5P.AdvancedText", "majorVersion": 1, "minorVersion": 1}
             ]
 
             # Zusaetzliche Libraries aus Elementen
-            seen_libs = set()
+            seen_libs = {"H5P.Column", "H5P.AdvancedText"}
             for elem in elements:
                 lib = elem.get('library', '')
                 lib_name = lib.split(' ')[0] if ' ' in lib else lib
                 if lib_name and lib_name not in seen_libs:
                     seen_libs.add(lib_name)
-                    # Parse version
                     if ' ' in lib:
                         parts = lib.split(' ')[1].split('.')
                         if len(parts) >= 2:
@@ -208,7 +216,7 @@ class QuestionSetGenerator(H5PGenerator):
                 question = {
                     "library": q.get('library', 'H5P.MultiChoice 1.16'),
                     "params": q.get('params', {}),
-                    "subContentId": q.get('subContentId', f"qs-{i}-{hash(title) % 10000}"),
+                    "subContentId": q.get('subContentId', _uuid()),
                     "metadata": q.get('metadata', {
                         "contentType": "Multiple Choice",
                         "license": "U",
@@ -271,7 +279,7 @@ class QuestionSetGenerator(H5PGenerator):
             ]
 
             # Libraries aus Fragen
-            seen_libs = set()
+            seen_libs = {"H5P.QuestionSet"}
             for q in questions:
                 lib = q.get('library', '')
                 lib_name = lib.split(' ')[0] if ' ' in lib else lib
@@ -311,20 +319,74 @@ class QuestionSetGenerator(H5PGenerator):
 
 
 # =============================================================================
-# Course Presentation Generator
+# Course Presentation Generator (v3.0 - Template System)
 # =============================================================================
+
+# Slide-Layout Templates
+SLIDE_LAYOUTS = {
+    "title_only": {
+        "description": "Nur Ueberschrift (Intro/Outro)",
+        "elements": [
+            {"role": "title", "x": 5, "y": 30, "width": 90, "height": 40}
+        ]
+    },
+    "text_content": {
+        "description": "Titel + Text-Inhalt",
+        "elements": [
+            {"role": "title", "x": 5, "y": 2, "width": 90, "height": 15},
+            {"role": "content", "x": 5, "y": 20, "width": 90, "height": 70}
+        ]
+    },
+    "interactive": {
+        "description": "Titel + Text + eingebettetes H5P-Element",
+        "elements": [
+            {"role": "title", "x": 5, "y": 2, "width": 90, "height": 12},
+            {"role": "content", "x": 5, "y": 16, "width": 90, "height": 30},
+            {"role": "interactive", "x": 5, "y": 48, "width": 90, "height": 48}
+        ]
+    },
+    "interactive_full": {
+        "description": "Titel + vollflaechiges H5P-Element",
+        "elements": [
+            {"role": "title", "x": 5, "y": 2, "width": 90, "height": 12},
+            {"role": "interactive", "x": 5, "y": 16, "width": 90, "height": 78}
+        ]
+    },
+    "split": {
+        "description": "Links Text, rechts Interaktion",
+        "elements": [
+            {"role": "title", "x": 5, "y": 2, "width": 90, "height": 12},
+            {"role": "content", "x": 5, "y": 16, "width": 43, "height": 78},
+            {"role": "interactive", "x": 52, "y": 16, "width": 43, "height": 78}
+        ]
+    }
+}
+
+# Typen die in CoursePresentation eingebettet werden koennen
+COURSE_PRESENTATION_EMBEDDABLE = {
+    'H5P.AdvancedText', 'H5P.MultiChoice', 'H5P.TrueFalse',
+    'H5P.DragQuestion', 'H5P.DragText', 'H5P.Blanks',
+    'H5P.SingleChoiceSet', 'H5P.Summary', 'H5P.MarkTheWords',
+    'H5P.Image', 'H5P.Audio', 'H5P.Video', 'H5P.Table',
+    'H5P.Link', 'H5P.Shape', 'H5P.GoToSlide',
+    'H5P.ContinuousText', 'H5P.Chart', 'H5P.TwitterUserFeed',
+    'H5P.ExportableTextArea', 'H5P.IVHotspot', 'H5P.Nil',
+    'H5P.Essay', 'H5P.SortParagraphs',
+}
+
 
 class CoursePresentationGenerator(H5PGenerator):
     """
     Generator fuer H5P.CoursePresentation - Slide-basierte Praesentation.
 
-    Ideal fuer:
-    - Tutorials mit Navigation
-    - Praesentationen mit Text-Inhalten
-    - Strukturierte Lernpfade
+    v3.0: Template-System, eingebettete H5P-Typen, UUID subContentIds.
 
-    HINWEIS: Verwendet H5P.AdvancedText fuer stabiles Rendering.
-    Fuer komplexe eingebettete H5P-Typen wird Column empfohlen.
+    Slide-Layouts:
+    - title_only: Nur Ueberschrift (Intro/Outro)
+    - text_content: Titel + Text
+    - interactive: Titel + Text + H5P-Element
+    - interactive_full: Titel + vollflaechiges H5P-Element
+    - split: Links Text, rechts Interaktion
     """
 
     def create(
@@ -339,22 +401,37 @@ class CoursePresentationGenerator(H5PGenerator):
 
         Args:
             title: Titel der Praesentation
-            slides: Liste von Slide-Dicts mit:
-                - title: Slide-Titel (wird als Ueberschrift angezeigt)
-                - content: HTML-Inhalt oder Text
-                - elements: (Optional) Liste von Elementen auf dem Slide
-                - keywords: Optional, Slide-Titel/Keywords
+            slides: Liste von Slide-Dicts. Unterstuetzte Formate:
+
+                Format 1 - Einfach (title + content):
+                {"title": "Folie 1", "content": "<p>Text</p>"}
+
+                Format 2 - Mit Layout-Template:
+                {
+                    "layout": "interactive",
+                    "title": "Quiz-Folie",
+                    "content": "<p>Beantworte die Frage:</p>",
+                    "interactive": {
+                        "library": "H5P.MultiChoice 1.16",
+                        "params": {...}
+                    }
+                }
+
+                Format 3 - Vollstaendig (elements direkt):
+                {
+                    "elements": [{
+                        "library": "H5P.AdvancedText 1.1",
+                        "params": {"text": "..."},
+                        "x": 5, "y": 5, "width": 90, "height": 90
+                    }],
+                    "keywords": [{"main": "Folie 1"}]
+                }
+
             output_name: Dateiname
             show_summary: Zusammenfassung am Ende
 
         Returns:
             H5PResult
-
-        Beispiel:
-            slides = [
-                {"title": "Einführung", "content": "<p>Willkommen!</p>"},
-                {"title": "Hauptteil", "content": "<p>Der Inhalt...</p>"}
-            ]
         """
         try:
             if not slides:
@@ -374,79 +451,12 @@ class CoursePresentationGenerator(H5PGenerator):
 
             # Slides formatieren
             h5p_slides = []
+            all_libraries = set()
+
             for i, slide in enumerate(slides):
-                elements = []
-
-                # Wenn 'elements' direkt angegeben, verwende diese
-                if 'elements' in slide and slide['elements']:
-                    for j, elem in enumerate(slide['elements']):
-                        # Vereinfachte Text-Elemente
-                        if 'text' in elem or 'content' in elem:
-                            text_content = elem.get('text') or elem.get('content', '')
-                            element = {
-                                "x": elem.get('x', 5),
-                                "y": elem.get('y', 5),
-                                "width": elem.get('width', 90),
-                                "height": elem.get('height', 90),
-                                "action": {
-                                    "library": "H5P.AdvancedText 1.1",
-                                    "params": {"text": text_content},
-                                    "subContentId": f"cp-{i}-{j}-{hash(title) % 10000}",
-                                    "metadata": {"contentType": "Text", "license": "U", "title": "Text"}
-                                },
-                                "backgroundOpacity": 0,
-                                "displayAsButton": False
-                            }
-                            elements.append(element)
-                        else:
-                            # Komplexere Elemente mit library
-                            element = {
-                                "x": elem.get('x', 5),
-                                "y": elem.get('y', 5),
-                                "width": elem.get('width', 90),
-                                "height": elem.get('height', 90),
-                                "action": {
-                                    "library": elem.get('library', 'H5P.AdvancedText 1.1'),
-                                    "params": elem.get('params', {}),
-                                    "subContentId": elem.get('subContentId', f"cp-{i}-{j}-{hash(title) % 10000}"),
-                                    "metadata": elem.get('metadata', {"contentType": "Text", "license": "U", "title": "Element"})
-                                },
-                                "backgroundOpacity": elem.get('backgroundOpacity', 0),
-                                "displayAsButton": elem.get('displayAsButton', False)
-                            }
-                            elements.append(element)
-                else:
-                    # Einfaches Format: title + content als Text
-                    slide_title = slide.get('title', f'Folie {i+1}')
-                    slide_content = slide.get('content', '')
-
-                    # Kombiniere Titel und Inhalt mit Styling (font-size:24px fuer Lumi-Kompatibilitaet)
-                    html_content = f'<div style="font-size:24px;"><h1>{slide_title}</h1>{slide_content}</div>'
-
-                    element = {
-                        "x": 5,
-                        "y": 5,
-                        "width": 90,
-                        "height": 90,
-                        "action": {
-                            "library": "H5P.AdvancedText 1.1",
-                            "params": {"text": html_content},
-                            "subContentId": f"slide{i+1}-text",
-                            "metadata": {"contentType": "Text", "license": "U", "title": slide_title}
-                        },
-                        "backgroundOpacity": 0,
-                        "displayAsButton": False
-                    }
-                    elements.append(element)
-
-                # Slide-Keywords
-                slide_title = slide.get('title') or slide.get('keywords', [{}])[0].get('main') or f"Slide {i+1}"
-                h5p_slide = {
-                    "elements": elements,
-                    "slideBackgroundSelector": {},  # Wichtig fuer korrektes Rendering
-                    "keywords": slide.get('keywords', [{"main": slide_title}])
-                }
+                h5p_slide, libs = self._build_slide(slide, i)
                 h5p_slides.append(h5p_slide)
+                all_libraries.update(libs)
 
             content = {
                 "presentation": {
@@ -496,22 +506,20 @@ class CoursePresentationGenerator(H5PGenerator):
                 {"machineName": "FontAwesome", "majorVersion": 4, "minorVersion": 5}
             ]
 
-            # Libraries aus Slides
-            seen_libs = set()
-            for slide in slides:
-                for elem in slide.get('elements', []):
-                    lib = elem.get('library', '')
-                    lib_name = lib.split(' ')[0] if ' ' in lib else lib
-                    if lib_name and lib_name not in seen_libs:
-                        seen_libs.add(lib_name)
-                        if ' ' in lib:
-                            parts = lib.split(' ')[1].split('.')
-                            if len(parts) >= 2:
-                                dependencies.append({
-                                    "machineName": lib_name,
-                                    "majorVersion": int(parts[0]),
-                                    "minorVersion": int(parts[1])
-                                })
+            # Libraries aus Slides hinzufuegen
+            seen_libs = {"H5P.CoursePresentation", "H5P.AdvancedText", "FontAwesome"}
+            for lib in all_libraries:
+                lib_name = lib.split(' ')[0] if ' ' in lib else lib
+                if lib_name not in seen_libs:
+                    seen_libs.add(lib_name)
+                    if ' ' in lib:
+                        parts = lib.split(' ')[1].split('.')
+                        if len(parts) >= 2:
+                            dependencies.append({
+                                "machineName": lib_name,
+                                "majorVersion": int(parts[0]),
+                                "minorVersion": int(parts[1])
+                            })
 
             self._write_json(temp_dir / "content" / "content.json", content)
             self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
@@ -536,14 +544,195 @@ class CoursePresentationGenerator(H5PGenerator):
                 title=title
             )
 
+    def _build_slide(self, slide: Dict, index: int) -> tuple:
+        """
+        Baut einen einzelnen Slide. Unterstuetzt 3 Formate.
+
+        Returns:
+            (slide_dict, set_of_libraries_used)
+        """
+        libraries_used = set()
+
+        # Format 3: elements direkt angegeben
+        if 'elements' in slide and slide['elements']:
+            elements = []
+            for j, elem in enumerate(slide['elements']):
+                element, lib = self._build_element(elem, index, j)
+                elements.append(element)
+                if lib:
+                    libraries_used.add(lib)
+
+            slide_title = slide.get('title') or slide.get('keywords', [{}])[0].get('main') or f"Slide {index+1}"
+            return {
+                "elements": elements,
+                "slideBackgroundSelector": {},
+                "keywords": slide.get('keywords', [{"main": slide_title}])
+            }, libraries_used
+
+        # Format 2: Layout-Template
+        layout_name = slide.get('layout', None)
+        if layout_name and layout_name in SLIDE_LAYOUTS:
+            return self._build_slide_from_template(slide, layout_name, index, libraries_used)
+
+        # Format 1 oder Auto-Detection: title + content (+ optional interactive)
+        has_interactive = 'interactive' in slide and slide['interactive']
+        if has_interactive:
+            layout_name = 'interactive'
+        else:
+            layout_name = 'text_content'
+
+        return self._build_slide_from_template(slide, layout_name, index, libraries_used)
+
+    def _build_slide_from_template(self, slide: Dict, layout_name: str, index: int, libraries_used: set) -> tuple:
+        """Baut Slide aus Template-Layout."""
+        layout = SLIDE_LAYOUTS.get(layout_name, SLIDE_LAYOUTS['text_content'])
+        elements = []
+        slide_title = slide.get('title', f'Folie {index+1}')
+
+        for j, slot in enumerate(layout['elements']):
+            role = slot['role']
+            x, y, w, h = slot['x'], slot['y'], slot['width'], slot['height']
+
+            if role == 'title':
+                element = self._make_text_element(
+                    f'<h2 style="font-size:1.5em;color:#003366;">{slide_title}</h2>',
+                    x, y, w, h, index, j
+                )
+                elements.append(element)
+
+            elif role == 'content':
+                content_html = slide.get('content', '')
+                if content_html:
+                    element = self._make_text_element(content_html, x, y, w, h, index, j)
+                    elements.append(element)
+
+            elif role == 'interactive':
+                interactive = slide.get('interactive', None)
+                if interactive and isinstance(interactive, dict):
+                    lib = interactive.get('library', 'H5P.AdvancedText 1.1')
+                    lib_name = lib.split(' ')[0] if ' ' in lib else lib
+
+                    # Nur einbettbare Typen verwenden
+                    if lib_name in COURSE_PRESENTATION_EMBEDDABLE:
+                        libraries_used.add(lib)
+                        display_as_button = interactive.get('displayAsButton', False)
+                        element = {
+                            "x": x,
+                            "y": y,
+                            "width": w,
+                            "height": h,
+                            "action": {
+                                "library": lib,
+                                "params": interactive.get('params', {}),
+                                "subContentId": _uuid(),
+                                "metadata": interactive.get('metadata', {
+                                    "contentType": lib_name.replace('H5P.', ''),
+                                    "license": "U",
+                                    "title": slide_title
+                                })
+                            },
+                            "backgroundOpacity": 0,
+                            "displayAsButton": display_as_button
+                        }
+                        if display_as_button:
+                            element["buttonSize"] = "big"
+                            element["goToSlideType"] = "specified"
+                        elements.append(element)
+                    else:
+                        # Fallback: als Text darstellen
+                        element = self._make_text_element(
+                            f'<p><em>Element: {lib_name}</em></p>',
+                            x, y, w, h, index, j
+                        )
+                        elements.append(element)
+
+        return {
+            "elements": elements,
+            "slideBackgroundSelector": {},
+            "keywords": slide.get('keywords', [{"main": slide_title}])
+        }, libraries_used
+
+    def _build_element(self, elem: Dict, slide_idx: int, elem_idx: int) -> tuple:
+        """Baut ein einzelnes Slide-Element. Returns (element_dict, library_string_or_None)."""
+        # Text-Shorthand
+        if 'text' in elem or ('content' in elem and not 'library' in elem):
+            text_content = elem.get('text') or elem.get('content', '')
+            return self._make_text_element(
+                text_content,
+                elem.get('x', 5), elem.get('y', 5),
+                elem.get('width', 90), elem.get('height', 90),
+                slide_idx, elem_idx
+            ), None
+
+        # Volle Element-Definition
+        lib = elem.get('library', 'H5P.AdvancedText 1.1')
+        element = {
+            "x": elem.get('x', 5),
+            "y": elem.get('y', 5),
+            "width": elem.get('width', 90),
+            "height": elem.get('height', 90),
+            "action": {
+                "library": lib,
+                "params": elem.get('params', {}),
+                "subContentId": elem.get('subContentId', _uuid()),
+                "metadata": elem.get('metadata', {
+                    "contentType": "Text",
+                    "license": "U",
+                    "title": "Element"
+                })
+            },
+            "backgroundOpacity": elem.get('backgroundOpacity', 0),
+            "displayAsButton": elem.get('displayAsButton', False)
+        }
+        return element, lib
+
+    def _make_text_element(self, html: str, x: int, y: int, w: int, h: int,
+                           slide_idx: int, elem_idx: int) -> Dict:
+        """Erstellt ein AdvancedText-Element fuer Slides."""
+        return {
+            "x": x,
+            "y": y,
+            "width": w,
+            "height": h,
+            "action": {
+                "library": "H5P.AdvancedText 1.1",
+                "params": {"text": html},
+                "subContentId": _uuid(),
+                "metadata": {"contentType": "Text", "license": "U", "title": "Text"}
+            },
+            "backgroundOpacity": 0,
+            "displayAsButton": False
+        }
+
 
 # =============================================================================
-# Interactive Book Generator
+# Interactive Book Generator (v3.0 - H5P.Column Wrapper)
 # =============================================================================
+
+# Alle Typen die in H5P.Column (und damit InteractiveBook) eingebettet werden koennen
+INTERACTIVE_BOOK_COMPATIBLE = {
+    'H5P.AdvancedText', 'H5P.Accordion', 'H5P.Agamotto',
+    'H5P.Audio', 'H5P.AudioRecorder', 'H5P.Blanks',
+    'H5P.Chart', 'H5P.Collage', 'H5P.CoursePresentation',
+    'H5P.Dialogcards', 'H5P.DocumentationTool', 'H5P.DragQuestion',
+    'H5P.DragText', 'H5P.Essay', 'H5P.GoToSlide',
+    'H5P.GuessTheAnswer', 'H5P.IFrameEmbed', 'H5P.Image',
+    'H5P.ImageHotspotQuestion', 'H5P.ImageHotspots',
+    'H5P.ImageSequencing', 'H5P.InteractiveVideo',
+    'H5P.KewArCode', 'H5P.MarkTheWords', 'H5P.MemoryGame',
+    'H5P.MultiChoice', 'H5P.Questionnaire', 'H5P.QuestionSet',
+    'H5P.SingleChoiceSet', 'H5P.Summary', 'H5P.Table',
+    'H5P.Timeline', 'H5P.TrueFalse', 'H5P.TwitterUserFeed',
+    'H5P.Video', 'H5P.SortParagraphs', 'H5P.BranchingScenario',
+}
+
 
 class InteractiveBookGenerator(H5PGenerator):
     """
     Generator fuer H5P.InteractiveBook - Kapitel-basiertes Buch.
+
+    v3.0: Jedes Kapitel wird korrekt als H5P.Column 1.18 Wrapper erstellt.
+    Erweiterte Kompatibilitaet fuer 35+ eingebettete Typen.
 
     Ideal fuer:
     - Strukturierte Lerneinheiten mit mehreren Kapiteln
@@ -557,7 +746,8 @@ class InteractiveBookGenerator(H5PGenerator):
         chapters: List[Dict],
         output_name: str = None,
         cover_description: str = None,
-        show_cover: bool = True
+        show_cover: bool = True,
+        base_color: str = "#003366"
     ) -> H5PResult:
         """
         Erstellt ein Interactive Book mit Kapiteln.
@@ -570,20 +760,10 @@ class InteractiveBookGenerator(H5PGenerator):
             output_name: Dateiname
             cover_description: Beschreibung auf der Titelseite
             show_cover: Titelseite anzeigen
+            base_color: Navigationsfarbe (default: BS:WI Navy)
 
         Returns:
             H5PResult
-
-        Beispiel:
-            chapters = [
-                {
-                    "title": "Kapitel 1",
-                    "elements": [
-                        {"library": "H5P.AdvancedText 1.1", "params": {"text": "<p>Intro</p>"}},
-                        {"library": "H5P.Dialogcards 1.9", "params": {...}}
-                    ]
-                }
-            ]
         """
         try:
             if not chapters:
@@ -601,12 +781,12 @@ class InteractiveBookGenerator(H5PGenerator):
 
             temp_dir = self._create_temp_dir(output_name)
 
-            # Kapitel formatieren
+            # Kapitel formatieren - jedes Kapitel ist ein H5P.Column 1.18
             h5p_chapters = []
             all_dependencies = set()
 
             for i, chapter in enumerate(chapters):
-                chapter_content = []
+                column_content = []
 
                 for j, elem in enumerate(chapter.get('elements', [])):
                     lib = elem.get('library', 'H5P.AdvancedText 1.1')
@@ -617,7 +797,7 @@ class InteractiveBookGenerator(H5PGenerator):
                         "content": {
                             "library": lib,
                             "params": elem.get('params', {}),
-                            "subContentId": elem.get('subContentId', f"ch{i+1}-elem{j+1}"),
+                            "subContentId": elem.get('subContentId', _uuid()),
                             "metadata": elem.get('metadata', {
                                 "contentType": lib_name.replace('H5P.', ''),
                                 "license": "U",
@@ -626,28 +806,37 @@ class InteractiveBookGenerator(H5PGenerator):
                         },
                         "useSeparator": "auto"
                     }
-                    chapter_content.append(content_item)
+                    column_content.append(content_item)
 
+                # Kapitel = H5P.Column 1.18 (flache Struktur, kein "chapter"-Wrapper)
+                # H5P.InteractiveBook semantics hat eine Gruppe mit nur 1 Feld,
+                # diese wird vom H5P-Validator "flattened" - das Library-Objekt
+                # muss direkt im chapters-Array liegen.
                 h5p_chapters.append({
-                    "title": chapter.get('title', f'Kapitel {i+1}'),
+                    "library": "H5P.Column 1.18",
                     "params": {
-                        "content": chapter_content
+                        "content": column_content
+                    },
+                    "subContentId": _uuid(),
+                    "metadata": {
+                        "contentType": "Column",
+                        "license": "U",
+                        "title": chapter.get('title', f'Kapitel {i+1}')
                     }
                 })
 
             content = {
                 "showCoverPage": show_cover,
                 "bookCover": {
-                    "coverDescription": f"<p>{cover_description or title}</p>",
-                    "coverImage": {},
-                    "coverMedium": {}
+                    "coverDescription": f"<p>{cover_description or title}</p>"
                 },
-                "title": f"<p>{title}</p>",
                 "chapters": h5p_chapters,
                 "behaviour": {
                     "defaultTableOfContents": True,
                     "progressIndicators": True,
-                    "displaySummary": True
+                    "progressAuto": True,
+                    "displaySummary": True,
+                    "baseColor": base_color
                 },
                 "l10n": {
                     "nextPage": "Weiter",
@@ -675,21 +864,24 @@ class InteractiveBookGenerator(H5PGenerator):
 
             # Dependencies sammeln
             dependencies = [
-                {"machineName": "H5P.InteractiveBook", "majorVersion": 1, "minorVersion": 7},
-                {"machineName": "H5P.Column", "majorVersion": 1, "minorVersion": 16},
+                {"machineName": "H5P.InteractiveBook", "majorVersion": 1, "minorVersion": 11},
+                {"machineName": "H5P.Column", "majorVersion": 1, "minorVersion": 18},
                 {"machineName": "FontAwesome", "majorVersion": 4, "minorVersion": 5}
             ]
 
+            seen_libs = {"H5P.InteractiveBook", "H5P.Column", "FontAwesome"}
             for lib in all_dependencies:
                 if ' ' in lib:
                     lib_name = lib.split(' ')[0]
-                    version_parts = lib.split(' ')[1].split('.')
-                    if len(version_parts) >= 2:
-                        dependencies.append({
-                            "machineName": lib_name,
-                            "majorVersion": int(version_parts[0]),
-                            "minorVersion": int(version_parts[1])
-                        })
+                    if lib_name not in seen_libs:
+                        seen_libs.add(lib_name)
+                        version_parts = lib.split(' ')[1].split('.')
+                        if len(version_parts) >= 2:
+                            dependencies.append({
+                                "machineName": lib_name,
+                                "majorVersion": int(version_parts[0]),
+                                "minorVersion": int(version_parts[1])
+                            })
 
             self._write_json(temp_dir / "content" / "content.json", content)
             self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
@@ -758,11 +950,12 @@ def create_interactive_book(
     chapters: List[Dict],
     output_name: str = None,
     cover_description: str = None,
-    style: H5PStyle = None
+    style: H5PStyle = None,
+    base_color: str = "#003366"
 ) -> H5PResult:
     """Erstellt ein Interactive Book"""
     gen = InteractiveBookGenerator(style=style)
-    return gen.create(title, chapters, output_name, cover_description)
+    return gen.create(title, chapters, output_name, cover_description, base_color=base_color)
 
 
 # =============================================================================
@@ -770,7 +963,7 @@ def create_interactive_book(
 # =============================================================================
 
 if __name__ == "__main__":
-    print("H5P Container-Generatoren - Test")
+    print("H5P Container-Generatoren v3.0 - Test")
     print("=" * 50)
 
     # Test Column
@@ -816,32 +1009,82 @@ if __name__ == "__main__":
     )
     print(f"  {result}")
 
-    # Test Course Presentation
-    print("\n3. CoursePresentation Test...")
+    # Test Course Presentation with template
+    print("\n3. CoursePresentation Test (Template)...")
     result = create_course_presentation(
         "Test-Praesentation",
         [
             {
-                "elements": [
-                    {
-                        "library": "H5P.AdvancedText 1.1",
-                        "params": {"text": "<h1>Folie 1</h1><p>Einfuehrung</p>"},
-                        "x": 10, "y": 10, "width": 80, "height": 80
-                    }
-                ],
-                "keywords": [{"main": "Einfuehrung"}]
+                "layout": "title_only",
+                "title": "Einfuehrung in Scrum"
             },
             {
+                "layout": "text_content",
+                "title": "Was ist Scrum?",
+                "content": "<p>Scrum ist ein agiles Framework...</p>"
+            },
+            {
+                "layout": "interactive",
+                "title": "Quiz-Folie",
+                "content": "<p>Beantworte die Frage:</p>",
+                "interactive": {
+                    "library": "H5P.TrueFalse 1.8",
+                    "params": {
+                        "question": "<p>Scrum hat 3 Rollen.</p>",
+                        "correct": "true",
+                        "l10n": {"trueText": "Wahr", "falseText": "Falsch"}
+                    }
+                }
+            }
+        ]
+    )
+    print(f"  {result}")
+
+    # Test Interactive Book (v3.0 Column Wrapper)
+    print("\n4. InteractiveBook Test (Column Wrapper)...")
+    result = create_interactive_book(
+        "Scrum-Buch",
+        [
+            {
+                "title": "Kapitel 1: Rollen",
                 "elements": [
                     {
                         "library": "H5P.AdvancedText 1.1",
-                        "params": {"text": "<h1>Folie 2</h1><p>Hauptteil</p>"},
-                        "x": 10, "y": 10, "width": 80, "height": 80
+                        "params": {"text": "<h2>Die Scrum-Rollen</h2><p>Es gibt drei Rollen...</p>"}
+                    },
+                    {
+                        "library": "H5P.Dialogcards 1.9",
+                        "params": {
+                            "dialogs": [
+                                {"text": "<p>Product Owner</p>", "answer": "<p>Priorisiert das Backlog</p>"},
+                                {"text": "<p>Scrum Master</p>", "answer": "<p>Entfernt Hindernisse</p>"}
+                            ]
+                        }
                     }
-                ],
-                "keywords": [{"main": "Hauptteil"}]
+                ]
+            },
+            {
+                "title": "Kapitel 2: Quiz",
+                "elements": [
+                    {
+                        "library": "H5P.AdvancedText 1.1",
+                        "params": {"text": "<h2>Teste dein Wissen</h2>"}
+                    },
+                    {
+                        "library": "H5P.MultiChoice 1.16",
+                        "params": {
+                            "question": "<p>Welche Rolle priorisiert das Backlog?</p>",
+                            "answers": [
+                                {"text": "<p>Product Owner</p>", "correct": True},
+                                {"text": "<p>Scrum Master</p>", "correct": False},
+                                {"text": "<p>Developer</p>", "correct": False}
+                            ]
+                        }
+                    }
+                ]
             }
-        ]
+        ],
+        cover_description="Ein interaktives Buch ueber Scrum"
     )
     print(f"  {result}")
 

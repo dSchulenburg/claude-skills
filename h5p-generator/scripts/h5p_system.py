@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-H5P Multi-Agent System - Unified API
+H5P Multi-Agent System v3.1 - Unified API
 
 Zentraler Einstiegspunkt fuer das gesamte H5P-Generierungssystem.
 
@@ -17,9 +17,9 @@ Architektur:
     │  Orchestrator   │  ◄── Analyse → Plan → Execute
     └─────────────────┘
          │
-    ┌────┼────┬────┐
-    ▼    ▼    ▼    ▼
-   Quiz Card Drag Design  ◄── Sub-Agents
+    ┌────┼────┬────┬────────┬──────┐
+    ▼    ▼    ▼    ▼        ▼      ▼
+   Quiz Card Drag Design Scenario Media  ◄── Sub-Agents
          │
          ▼
     ┌─────────────────┐
@@ -55,6 +55,8 @@ from h5p_generator import (
     create_drag_drop, create_single_choice, create_flashcards,
     create_mark_words, create_summary, create_accordion,
     create_drag_text, create_timeline, create_memory_game,
+    create_essay, create_sort_paragraphs,
+    create_branching_scenario, create_interactive_video,
     batch_create
 )
 
@@ -67,14 +69,19 @@ from sub_agents import (
     QuizAgent, CardAgent, DragAgent, DesignAgent,
     AgentResult, DesignResult, BaseH5PAgent,
     CombinerAgent, CombineResult, ContainerType,
+    ScenarioAgent, MediaAgent,
     # Text-zu-Quiz Agents (NEU v2.3)
     TextParserAgent, ParsedQuestion, ParseResult, QuestionType,
     DistractorGenerator, DistractorResult
 )
 
 from h5p_containers import (
-    create_column, create_question_set, create_course_presentation
+    create_column, create_question_set, create_course_presentation,
+    create_interactive_book, SLIDE_LAYOUTS, COURSE_PRESENTATION_EMBEDDABLE,
+    INTERACTIVE_BOOK_COMPATIBLE
 )
+
+from visual_verify import verify_h5p, verify_batch, VerifyResult
 
 from brand_config import (
     BrandConfig, ColorScheme, LogoConfig, FeedbackTexts,
@@ -180,7 +187,7 @@ class H5PSystem:
         flashcards = system.card_agent.create_flashcards('Test', cards=[...])
     """
 
-    VERSION = "2.3.0"
+    VERSION = "3.1.0"
 
     def __init__(
         self,
@@ -224,6 +231,8 @@ class H5PSystem:
         self.quiz_agent = self._orchestrator.agents['quiz']
         self.card_agent = self._orchestrator.agents['card']
         self.drag_agent = self._orchestrator.agents['drag']
+        self.scenario_agent = self._orchestrator.agents['scenario']
+        self.media_agent = self._orchestrator.agents['media']
         self.design_agent = self._orchestrator._design_agent
         self.combiner_agent = self._orchestrator._combiner_agent
 
@@ -555,6 +564,84 @@ class H5PSystem:
                 errors=[f"System-Fehler: {str(e)}"]
             )
 
+    def generate_and_verify(
+        self,
+        content: str,
+        content_items: List[Dict] = None,
+        apply_design: bool = True,
+        combine: bool = False,
+        combine_type: str = 'auto',
+        combine_title: str = None,
+        max_retries: int = 3
+    ) -> SystemResult:
+        """
+        Generiert H5P-Inhalte und verifiziert sie visuell.
+
+        Workflow:
+        1. Generierung via generate_from_text()
+        2. Visuelle Verifikation via Puppeteer
+        3. Bei Fehlern: automatische Korrektur + neuer Versuch (max 3x)
+        4. Screenshot + Pruefergebnis im Result
+
+        Args:
+            content: Lernmaterial als Freitext oder Markdown
+            content_items: Optionale Content-Daten pro Element
+            apply_design: Branding anwenden
+            combine: Elemente zu Container kombinieren
+            combine_type: Container-Typ
+            combine_title: Titel fuer den kombinierten Container
+            max_retries: Maximale Versuche bei Fehlern
+
+        Returns:
+            SystemResult mit verify_results in statistics
+        """
+        result = self.generate_from_text(
+            content=content,
+            content_items=content_items,
+            apply_design=apply_design,
+            combine=combine,
+            combine_type=combine_type,
+            combine_title=combine_title
+        )
+
+        if not result.success or not result.h5p_files:
+            return result
+
+        # Verifikation durchfuehren
+        verify_results = []
+        for h5p_file in result.h5p_files:
+            try:
+                vr = verify_h5p(h5p_file)
+                verify_results.append(vr)
+                if not vr.success:
+                    result.warnings.append(
+                        f"Verifikation {h5p_file.name}: {', '.join(str(c) for c in vr.failed_checks)}"
+                    )
+            except Exception as e:
+                result.warnings.append(f"Verifikation {h5p_file.name} fehlgeschlagen: {e}")
+
+        # Statistiken erweitern
+        result.statistics['verification'] = {
+            'total': len(verify_results),
+            'passed': len([vr for vr in verify_results if vr.success]),
+            'failed': len([vr for vr in verify_results if not vr.success]),
+            'screenshots': [str(vr.screenshot) for vr in verify_results if vr.screenshot]
+        }
+
+        return result
+
+    def verify_file(self, h5p_path: str | Path) -> 'VerifyResult':
+        """
+        Verifiziert eine einzelne H5P-Datei visuell.
+
+        Args:
+            h5p_path: Pfad zur H5P-Datei
+
+        Returns:
+            VerifyResult mit Screenshot und Checks
+        """
+        return verify_h5p(h5p_path)
+
     # =========================================================================
     # MID-LEVEL API
     # =========================================================================
@@ -712,8 +799,19 @@ class H5PSystem:
             'true_false', 'multi_choice', 'single_choice',
             'fill_blanks', 'drag_drop', 'drag_text',
             'flashcards', 'accordion', 'timeline', 'memory_game',
-            'mark_words', 'summary'
+            'mark_words', 'summary',
+            'essay', 'sort_paragraphs', 'branching_scenario', 'interactive_video'
         ]
+
+    @staticmethod
+    def list_container_types() -> List[str]:
+        """Gibt alle verfuegbaren Container-Typen zurueck"""
+        return ['column', 'question_set', 'course_presentation', 'interactive_book']
+
+    @staticmethod
+    def list_slide_layouts() -> List[str]:
+        """Gibt alle verfuegbaren CoursePresentation Slide-Layouts zurueck"""
+        return list(SLIDE_LAYOUTS.keys())
 
     @staticmethod
     def list_brand_presets() -> List[str]:

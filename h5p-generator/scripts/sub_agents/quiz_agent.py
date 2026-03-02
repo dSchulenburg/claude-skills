@@ -7,6 +7,8 @@ Unterstützte Typen:
 - Single Choice
 - Summary
 - Fill in Blanks
+- Essay (v3.1)
+- Sort Paragraphs (v3.1)
 """
 
 from pathlib import Path
@@ -21,6 +23,8 @@ from h5p_generator import (
     create_single_choice,
     create_summary,
     create_fill_blanks,
+    create_essay,
+    create_sort_paragraphs,
     THEMES
 )
 from .base_agent import BaseH5PAgent, ValidationIssue
@@ -36,11 +40,12 @@ class QuizAgent(BaseH5PAgent):
     - Automatische Antwort-Validierung
     """
 
-    SUPPORTED_TYPES = ['true_false', 'multi_choice', 'single_choice', 'summary', 'fill_blanks']
+    SUPPORTED_TYPES = ['true_false', 'multi_choice', 'single_choice', 'summary', 'fill_blanks', 'essay', 'sort_paragraphs']
 
     FALLBACK_MAP = {
         'multi_choice': 'single_choice',  # MC → SC bei Problemen
         'summary': 'true_false',          # Summary → TF bei zu wenig Aussagen
+        'essay': 'fill_blanks',           # Essay → Blanks bei Problemen
     }
 
     def __init__(self, output_dir: Path | str = None, style=None):
@@ -72,11 +77,21 @@ class QuizAgent(BaseH5PAgent):
             fname = filename or self._make_filename(title, 'blanks')
             return create_fill_blanks(title, text, fname, style=self.style)
 
+        def gen_essay(title, task_description, keywords, filename=None, **kwargs):
+            fname = filename or self._make_filename(title, 'essay')
+            return create_essay(title, task_description, keywords, fname, style=self.style, **kwargs)
+
+        def gen_sort_paragraphs(title, paragraphs, filename=None, **kwargs):
+            fname = filename or self._make_filename(title, 'sort')
+            return create_sort_paragraphs(title, paragraphs, fname, style=self.style, **kwargs)
+
         self.register_generator('true_false', gen_true_false)
         self.register_generator('multi_choice', gen_multi_choice)
         self.register_generator('single_choice', gen_single_choice)
         self.register_generator('summary', gen_summary)
         self.register_generator('fill_blanks', gen_fill_blanks)
+        self.register_generator('essay', gen_essay)
+        self.register_generator('sort_paragraphs', gen_sort_paragraphs)
 
     def _register_validators(self):
         """Registriert Validatoren für jeden Typ"""
@@ -210,11 +225,53 @@ class QuizAgent(BaseH5PAgent):
                 ))
             return issues
 
+        def validate_essay(task_description=None, keywords=None, **kwargs) -> list[ValidationIssue]:
+            issues = []
+            if not task_description:
+                issues.append(ValidationIssue(
+                    severity="error",
+                    message="Keine Aufgabenstellung angegeben"
+                ))
+            if not keywords:
+                issues.append(ValidationIssue(
+                    severity="error",
+                    message="Keine Keywords angegeben"
+                ))
+            elif len(keywords) < 1:
+                issues.append(ValidationIssue(
+                    severity="error",
+                    message="Mindestens 1 Keyword erforderlich"
+                ))
+            else:
+                for i, kw in enumerate(keywords):
+                    if 'keyword' not in kw:
+                        issues.append(ValidationIssue(
+                            severity="error",
+                            message=f"Keyword {i+1}: 'keyword' fehlt"
+                        ))
+            return issues
+
+        def validate_sort_paragraphs(paragraphs=None, **kwargs) -> list[ValidationIssue]:
+            issues = []
+            if not paragraphs:
+                issues.append(ValidationIssue(
+                    severity="error",
+                    message="Keine Absätze angegeben"
+                ))
+            elif len(paragraphs) < 2:
+                issues.append(ValidationIssue(
+                    severity="error",
+                    message="Mindestens 2 Absätze erforderlich"
+                ))
+            return issues
+
         self.register_validator('true_false', validate_true_false)
         self.register_validator('multi_choice', validate_multi_choice)
         self.register_validator('single_choice', validate_single_choice)
         self.register_validator('summary', validate_summary)
         self.register_validator('fill_blanks', validate_fill_blanks)
+        self.register_validator('essay', validate_essay)
+        self.register_validator('sort_paragraphs', validate_sort_paragraphs)
 
     def _make_filename(self, title: str, type_suffix: str) -> str:
         """Erstellt einen Dateinamen aus Titel"""
@@ -276,3 +333,26 @@ class QuizAgent(BaseH5PAgent):
             text: Text mit *Lücken* markiert
         """
         return self.generate('fill_blanks', title=title, text=text, filename=filename)
+
+    def create_essay(self, title: str, task_description: str, keywords: list[dict], filename: str = None, **kwargs):
+        """
+        Erstellt Essay-Aufgabe mit Keyword-Bewertung.
+
+        Args:
+            title: Titel
+            task_description: Aufgabenstellung
+            keywords: Liste von {"keyword": str, "alternatives": [...], "points": int}
+        """
+        return self.generate('essay', title=title, task_description=task_description,
+                           keywords=keywords, filename=filename, **kwargs)
+
+    def create_sort_paragraphs(self, title: str, paragraphs: list[str], filename: str = None, **kwargs):
+        """
+        Erstellt Absatz-Sortier-Aufgabe.
+
+        Args:
+            title: Titel
+            paragraphs: Liste von Strings in korrekter Reihenfolge
+        """
+        return self.generate('sort_paragraphs', title=title, paragraphs=paragraphs,
+                           filename=filename, **kwargs)

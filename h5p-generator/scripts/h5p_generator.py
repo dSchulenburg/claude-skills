@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 """
-H5P Generator v2.0 - Erstellt .h5p-Dateien direkt aus Python
+H5P Generator v3.1 - Erstellt .h5p-Dateien direkt aus Python
 
-Verbesserungen:
-- Robuste Fehlerbehandlung
-- Input-Validierung
-- Styling-Optionen
-- Neue Content-Types
-
-Unterstützte Content-Types:
+Unterstützte Content-Types (16):
 - TrueFalse          - Wahr/Falsch Quizze
 - MultiChoice        - Multiple Choice Fragen
 - Blanks             - Lückentext
@@ -18,11 +12,19 @@ Unterstützte Content-Types:
 - MarkTheWords       - Wörter im Text markieren
 - Summary            - Zusammenfassungen
 - Accordion          - Aufklappbare Abschnitte
+- DragText           - Wörter in Lücken ziehen
+- Timeline           - Zeitleisten
+- MemoryGame         - Memory-Spiel
+- Essay              - Freitext mit Keyword-Bewertung (v3.1)
+- SortParagraphs     - Absätze sortieren (v3.1)
+- BranchingScenario  - Verzweigte Lernszenarien (v3.1)
+- InteractiveVideo   - Videos mit eingebetteten Aufgaben (v3.1)
 """
 
 import json
 import zipfile
 import os
+import uuid
 from pathlib import Path
 from datetime import datetime
 import shutil
@@ -206,6 +208,10 @@ class H5PGenerator:
             "license": "CC BY",
             "preloadedDependencies": dependencies
         }
+
+    def _generate_uuid(self) -> str:
+        """Erzeugt eine UUID v4 als subContentId"""
+        return str(uuid.uuid4())
 
     def _get_question_set_texts(self) -> dict:
         """Standard-Texte für QuestionSet"""
@@ -475,7 +481,8 @@ class MultiChoiceGenerator(H5PGenerator):
 class FillInBlanksGenerator(H5PGenerator):
     """Generator für Lückentexte"""
 
-    def create(self, title: str, text_with_blanks: str, output_name: str = None) -> H5PResult:
+    def create(self, title: str, text_with_blanks: str, output_name: str = None,
+               task_description: str = None) -> H5PResult:
         """
         Erstellt eine Fill in the Blanks H5P-Datei
 
@@ -485,6 +492,7 @@ class FillInBlanksGenerator(H5PGenerator):
                 Beispiel: "Die Hauptstadt ist *Berlin*."
                 Mehrere Antworten: "*Berlin/berlin*"
             output_name: Dateiname
+            task_description: Aufgabenstellung (z.B. "Fülle die Lücken aus.")
 
         Returns:
             H5PResult
@@ -508,7 +516,12 @@ class FillInBlanksGenerator(H5PGenerator):
 
             temp_dir = self._create_temp_dir(output_name)
 
+            # Default-Aufgabenstellung wenn keine angegeben
+            if not task_description:
+                task_description = "Fülle die Lücken mit den richtigen Begriffen aus."
+
             content = {
+                "questions": f"<p>{task_description}</p>",
                 "text": text_with_blanks,
                 "overallFeedback": [
                     {"from": 0, "to": 50, "feedback": self.style.feedback_wrong},
@@ -1536,6 +1549,599 @@ class MemoryGameGenerator(H5PGenerator):
 
 
 # =============================================================================
+# NEW: Essay Generator (v3.1)
+# =============================================================================
+
+class EssayGenerator(H5PGenerator):
+    """Generator für Essay-Aufgaben mit Keyword-basierter Bewertung"""
+
+    def create(self, title: str, task_description: str, keywords: List[Dict],
+               output_name: str = None, sample_solution: str = "",
+               min_length: int = 0, input_field_size: int = 10,
+               enable_retry: bool = True, enable_solutions: bool = True) -> H5PResult:
+        """
+        Erstellt eine Essay H5P-Datei (H5P.Essay 1.5)
+
+        Args:
+            title: Titel der Aufgabe
+            task_description: Aufgabenstellung als HTML
+            keywords: Liste von Keyword-Dicts:
+                - keyword: Das Schlüsselwort
+                - alternatives: Optional, Liste alternativer Schreibweisen
+                - points: Optional, Punkte (default 1)
+                - forgive_mistakes: Optional, Tippfehler tolerieren (default True)
+                - case_sensitive: Optional, Groß-/Kleinschreibung (default False)
+            sample_solution: Musterlösung (optional)
+            min_length: Mindestanzahl Zeichen (0 = keine Beschränkung)
+            input_field_size: Höhe des Textfeldes in Zeilen
+            enable_retry: Wiederholen erlauben
+            enable_solutions: Lösung anzeigen erlauben
+            output_name: Dateiname (ohne .h5p)
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_not_empty(task_description, "Aufgabenstellung")
+            self._validate_list(keywords, "Keywords", min_items=1)
+
+            for i, kw in enumerate(keywords):
+                if 'keyword' not in kw:
+                    raise H5PValidationError(f"Keyword {i+1}: 'keyword' fehlt")
+
+            if not output_name:
+                output_name = f"essay_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            # Keywords aufbauen
+            h5p_keywords = []
+            for kw in keywords:
+                alternatives = kw.get('alternatives', [])
+                keyword_entry = {
+                    "keyword": kw['keyword'],
+                    "alternatives": alternatives,
+                    "options": {
+                        "points": kw.get('points', 1),
+                        "forgiveMistakes": kw.get('forgive_mistakes', True),
+                        "caseSensitive": kw.get('case_sensitive', False)
+                    }
+                }
+                h5p_keywords.append(keyword_entry)
+
+            content = {
+                "media": {"type": {"params": {}}, "disableImageZooming": False},
+                "taskDescription": f"<p>{task_description}</p>",
+                "solution": {
+                    "introduction": "<p>Musterl&ouml;sung:</p>",
+                    "sample": f"<p>{sample_solution}</p>" if sample_solution else ""
+                },
+                "keywords": h5p_keywords,
+                "overallFeedback": [
+                    {"from": 0, "to": 50, "feedback": "Versuche, mehr Schl&uuml;sselbegriffe zu verwenden."},
+                    {"from": 51, "to": 80, "feedback": "Gute Arbeit! Du hast die meisten Begriffe verwendet."},
+                    {"from": 81, "to": 100, "feedback": "Ausgezeichnet! Du hast alle wichtigen Begriffe genannt."}
+                ],
+                "behaviour": {
+                    "minimumLength": min_length,
+                    "inputFieldSize": input_field_size,
+                    "enableRetry": enable_retry,
+                    "enableSolutionsButton": enable_solutions,
+                    "ignoreScoring": False,
+                    "pointsHost": 1
+                },
+                "checkAnswer": "Antwort pr&uuml;fen",
+                "submitAnswer": "Absenden",
+                "tryAgain": "Nochmal versuchen",
+                "showSolution": "L&ouml;sung anzeigen",
+                "feedbackHeader": "Feedback",
+                "solutionTitle": "Musterl&ouml;sung",
+                "remainingChars": "Verbleibende Zeichen: @chars",
+                "notEnoughChars": "Du musst mindestens @chars Zeichen eingeben!",
+                "savingMessage": "Wird gespeichert...",
+                "savedMessage": "Gespeichert!",
+                "ariaYourResult": "Du hast @score von @total Punkten erreicht."
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.Essay",
+                [
+                    {"machineName": "H5P.Essay", "majorVersion": 1, "minorVersion": 5},
+                    {"machineName": "H5P.JoubelUI", "majorVersion": 1, "minorVersion": 3},
+                    {"machineName": "H5P.Question", "majorVersion": 1, "minorVersion": 5}
+                ]
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="Essay", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="Essay", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="Essay", title=title)
+
+
+# =============================================================================
+# NEW: SortParagraphs Generator (v3.1)
+# =============================================================================
+
+class SortParagraphsGenerator(H5PGenerator):
+    """Generator für Absätze sortieren - H5P.SortParagraphs"""
+
+    def create(self, title: str, paragraphs: List[str], output_name: str = None,
+               task_description: str = "Bringe die Abs&auml;tze in die richtige Reihenfolge.") -> H5PResult:
+        """
+        Erstellt eine SortParagraphs H5P-Datei (H5P.SortParagraphs 1.3)
+
+        Args:
+            title: Titel der Aufgabe
+            paragraphs: Liste von Strings in KORREKTER Reihenfolge
+                        (H5P shuffelt automatisch beim Anzeigen)
+            task_description: Aufgabenstellung
+            output_name: Dateiname (ohne .h5p)
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_list(paragraphs, "Absätze", min_items=2)
+
+            if not output_name:
+                output_name = f"sort_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            content = {
+                "taskDescription": f"<p>{task_description}</p>",
+                "paragraphs": [{"text": f"<p>{p}</p>"} for p in paragraphs],
+                "behaviour": {
+                    "enableRetry": True,
+                    "enableSolutionsButton": True,
+                    "scoringMode": "positions",
+                    "applyPenalties": True,
+                    "duplicatesInterchangeable": True
+                },
+                "l10n": {
+                    "checkAnswer": "Antwort pr&uuml;fen",
+                    "submitAnswer": "Absenden",
+                    "tryAgain": "Nochmal versuchen",
+                    "showSolution": "L&ouml;sung anzeigen",
+                    "up": "Nach oben",
+                    "down": "Nach unten",
+                    "disabled": "Deaktiviert",
+                    "correctAnswer": "Richtige Antwort",
+                    "wrongAnswer": "Falsche Antwort",
+                    "header": "Absatz sortieren",
+                    "resetDialog": "M&ouml;chtest du wirklich zur&uuml;cksetzen?",
+                    "resetDialogDescription": "Alle Antworten werden gel&ouml;scht.",
+                    "resetConfirm": "Zur&uuml;cksetzen",
+                    "resetDeny": "Abbrechen",
+                    "yourResult": "Du hast @score von @total Punkten erreicht."
+                }
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.SortParagraphs",
+                [
+                    {"machineName": "H5P.SortParagraphs", "majorVersion": 0, "minorVersion": 11},
+                    {"machineName": "H5P.JoubelUI", "majorVersion": 1, "minorVersion": 3},
+                    {"machineName": "H5P.Question", "majorVersion": 1, "minorVersion": 5}
+                ]
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="SortParagraphs", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="SortParagraphs", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="SortParagraphs", title=title)
+
+
+# =============================================================================
+# NEW: BranchingScenario Generator (v3.1)
+# =============================================================================
+
+class BranchingScenarioGenerator(H5PGenerator):
+    """Generator für verzweigte Lernszenarien - H5P.BranchingScenario"""
+
+    def create(self, title: str, nodes: List[Dict], output_name: str = None,
+               start_title: str = None, scoring_option: str = "no-score") -> H5PResult:
+        """
+        Erstellt ein BranchingScenario (H5P.BranchingScenario 1.8)
+
+        Args:
+            title: Titel des Szenarios
+            nodes: Liste von Node-Dicts:
+                Text-Node: {"type": "text", "title": "...", "content": "<p>...</p>", "next": 1}
+                Question-Node: {"type": "question", "question": "...",
+                    "alternatives": [{"text": "...", "next": 2}, {"text": "...", "next": 3}]}
+                next: -1 = Ende (End-Screen wird automatisch generiert)
+            start_title: Titel auf dem Startbildschirm (default: title)
+            scoring_option: "no-score", "static-end-score", "dynamic-score"
+            output_name: Dateiname (ohne .h5p)
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_list(nodes, "Nodes", min_items=2)
+
+            for i, node in enumerate(nodes):
+                if 'type' not in node:
+                    raise H5PValidationError(f"Node {i}: 'type' fehlt (text oder question)")
+                if node['type'] == 'text':
+                    if 'content' not in node:
+                        raise H5PValidationError(f"Node {i}: 'content' fehlt")
+                    if 'next' not in node:
+                        raise H5PValidationError(f"Node {i}: 'next' fehlt (-1 für Ende)")
+                elif node['type'] == 'question':
+                    if 'question' not in node:
+                        raise H5PValidationError(f"Node {i}: 'question' fehlt")
+                    if 'alternatives' not in node or len(node['alternatives']) < 2:
+                        raise H5PValidationError(f"Node {i}: Mindestens 2 Alternativen nötig")
+
+            if not output_name:
+                output_name = f"branching_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            # Build H5P content array
+            h5p_content = []
+            end_screens = []
+            terminal_indices = set()
+
+            # Identify terminal nodes (next == -1)
+            for i, node in enumerate(nodes):
+                if node['type'] == 'text' and node.get('next', -1) == -1:
+                    terminal_indices.add(i)
+                elif node['type'] == 'question':
+                    for alt in node.get('alternatives', []):
+                        if alt.get('next', -1) == -1:
+                            terminal_indices.add(i)
+
+            for i, node in enumerate(nodes):
+                if node['type'] == 'text':
+                    next_id = node.get('next', -1)
+                    h5p_node = {
+                        "type": {
+                            "library": "H5P.AdvancedText 1.1",
+                            "params": {
+                                "text": node['content'] if node['content'].startswith('<') else f"<p>{node['content']}</p>"
+                            },
+                            "subContentId": self._generate_uuid(),
+                            "metadata": {
+                                "contentType": "Text",
+                                "license": "U",
+                                "title": node.get('title', f"Schritt {i+1}")
+                            }
+                        },
+                        "showContentTitle": True,
+                        "contentTitle": node.get('title', f"Schritt {i+1}"),
+                        "nextContentId": next_id,
+                        "forceContentFinished": False
+                    }
+                    h5p_content.append(h5p_node)
+
+                elif node['type'] == 'question':
+                    alternatives = []
+                    for alt in node['alternatives']:
+                        alternatives.append({
+                            "text": alt['text'],
+                            "nextContentId": alt.get('next', -1)
+                        })
+
+                    h5p_node = {
+                        "type": {
+                            "library": "H5P.BranchingQuestion 1.0",
+                            "params": {
+                                "branchingQuestion": {
+                                    "question": f"<p>{node['question']}</p>",
+                                    "alternatives": alternatives
+                                }
+                            },
+                            "subContentId": self._generate_uuid(),
+                            "metadata": {
+                                "contentType": "Branching Question",
+                                "license": "U",
+                                "title": node.get('title', node['question'][:50])
+                            }
+                        },
+                        "showContentTitle": False,
+                        "forceContentFinished": False
+                    }
+                    h5p_content.append(h5p_node)
+
+            # Generate end screens for terminal paths
+            end_screens.append({
+                "endScreenTitle": "Ende",
+                "endScreenSubtitle": "",
+                "contentId": -1,
+                "endScreenScore": 0
+            })
+
+            # Scoring option mapping
+            scoring_map = {
+                "no-score": "no-score",
+                "static-end-score": "static-end-score",
+                "dynamic-score": "dynamic-score"
+            }
+
+            content = {
+                "branchingScenario": {
+                    "content": h5p_content,
+                    "startScreen": {
+                        "startScreenTitle": start_title or title,
+                        "startScreenSubtitle": ""
+                    },
+                    "endScreens": end_screens,
+                    "scoringOptionGroup": {
+                        "scoringOption": scoring_map.get(scoring_option, "no-score")
+                    },
+                    "l10n": {
+                        "startScreenButtonText": "Starten",
+                        "endScreenButtonText": "Neustart",
+                        "backButtonText": "Zur&uuml;ck",
+                        "proceedButtonText": "Weiter",
+                        "disableProceedButtonText": "Bitte beantworte die Frage.",
+                        "scoreText": "Dein Ergebnis:",
+                        "fullscreenAria": "Vollbild"
+                    }
+                }
+            }
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.BranchingScenario",
+                [
+                    {"machineName": "H5P.BranchingScenario", "majorVersion": 1, "minorVersion": 8},
+                    {"machineName": "H5P.AdvancedText", "majorVersion": 1, "minorVersion": 1},
+                    {"machineName": "H5P.BranchingQuestion", "majorVersion": 1, "minorVersion": 0}
+                ]
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="BranchingScenario", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="BranchingScenario", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="BranchingScenario", title=title)
+
+
+# =============================================================================
+# NEW: InteractiveVideo Generator (v3.1)
+# =============================================================================
+
+class InteractiveVideoGenerator(H5PGenerator):
+    """Generator für interaktive Videos - H5P.InteractiveVideo"""
+
+    SUPPORTED_INTERACTIONS = {
+        'multi_choice': 'H5P.MultiChoice 1.16',
+        'true_false': 'H5P.TrueFalse 1.8',
+        'fill_blanks': 'H5P.Blanks 1.12',
+        'drag_text': 'H5P.DragText 1.10',
+        'mark_words': 'H5P.MarkTheWords 1.11',
+        'single_choice': 'H5P.SingleChoiceSet 1.11',
+        'summary': 'H5P.Summary 1.10',
+        'text': 'H5P.AdvancedText 1.1',
+    }
+
+    def create(self, title: str, video_url: str, interactions: List[Dict] = None,
+               output_name: str = None, poster_url: str = None) -> H5PResult:
+        """
+        Erstellt ein InteractiveVideo (H5P.InteractiveVideo 1.27)
+
+        Args:
+            title: Titel des Videos
+            video_url: YouTube-URL oder direkte MP4-URL
+            interactions: Optionale Liste von Interaktions-Dicts:
+                - type: Art der Interaktion (multi_choice, true_false, fill_blanks, etc.)
+                - time_from: Startzeit in Sekunden
+                - time_to: Endzeit in Sekunden
+                - pause: Video pausieren (default True)
+                - params: Typ-spezifische Parameter
+                - label: Optional, Label für die Interaktion
+            poster_url: URL für das Poster-Bild (optional)
+            output_name: Dateiname (ohne .h5p)
+
+        Returns:
+            H5PResult
+        """
+        try:
+            self._validate_not_empty(title, "Titel")
+            self._validate_not_empty(video_url, "Video-URL")
+
+            if not output_name:
+                output_name = f"ivideo_{self._sanitize_filename(title)}"
+            else:
+                output_name = self._sanitize_filename(output_name)
+
+            temp_dir = self._create_temp_dir(output_name)
+
+            # Detect video MIME type
+            is_youtube = 'youtube.com' in video_url or 'youtu.be' in video_url
+            mime_type = "video/YouTube" if is_youtube else "video/mp4"
+
+            # Build video files array
+            video_files = [{
+                "path": video_url,
+                "mime": mime_type,
+                "copyright": {"license": "U"}
+            }]
+
+            # Build interactions
+            h5p_interactions = []
+            interaction_libs = set()
+
+            if interactions:
+                for i, interaction in enumerate(interactions):
+                    int_type = interaction.get('type', 'text')
+                    if int_type not in self.SUPPORTED_INTERACTIONS:
+                        raise H5PValidationError(
+                            f"Interaktion {i+1}: Unbekannter Typ '{int_type}'. "
+                            f"Verfügbar: {list(self.SUPPORTED_INTERACTIONS.keys())}"
+                        )
+
+                    library = self.SUPPORTED_INTERACTIONS[int_type]
+                    interaction_libs.add(library)
+
+                    time_from = interaction.get('time_from', 0)
+                    time_to = interaction.get('time_to', time_from + 10)
+
+                    h5p_interaction = {
+                        "x": 45,
+                        "y": 45,
+                        "width": 10,
+                        "height": 10,
+                        "duration": {
+                            "from": time_from,
+                            "to": time_to
+                        },
+                        "pause": interaction.get('pause', True),
+                        "displayType": "button",
+                        "buttonOnMobile": False,
+                        "adaptivity": {
+                            "correct": {"allowOptOut": False, "message": ""},
+                            "wrong": {"allowOptOut": False, "message": ""},
+                            "requireCompletion": False
+                        },
+                        "label": interaction.get('label', f"<p>Aufgabe {i+1}</p>"),
+                        "action": {
+                            "library": library,
+                            "params": interaction.get('params', {}),
+                            "subContentId": self._generate_uuid(),
+                            "metadata": {
+                                "contentType": int_type.replace('_', ' ').title(),
+                                "license": "U",
+                                "title": interaction.get('label', f"Interaktion {i+1}")
+                            }
+                        }
+                    }
+                    h5p_interactions.append(h5p_interaction)
+
+            content = {
+                "interactiveVideo": {
+                    "video": {
+                        "startScreenOptions": {
+                            "title": title,
+                            "hideStartTitle": False
+                        },
+                        "textTracks": {"videoTrack": []},
+                        "files": video_files
+                    },
+                    "assets": {
+                        "interactions": h5p_interactions,
+                        "bookmarks": [],
+                        "endscreens": [{
+                            "time": 0,
+                            "label": "0:00"
+                        }]
+                    },
+                    "summary": {
+                        "task": {
+                            "library": "H5P.Summary 1.10",
+                            "params": {},
+                            "subContentId": self._generate_uuid(),
+                            "metadata": {"contentType": "Summary", "license": "U", "title": "Summary"}
+                        },
+                        "displayAt": 3
+                    }
+                },
+                "override": {
+                    "autoplay": False,
+                    "loop": False,
+                    "showBookmarksmenuOnLoad": False,
+                    "showRewind10": False,
+                    "preventSkipping": False,
+                    "deactivateSound": False
+                },
+                "l10n": {
+                    "interaction": "Interaktion",
+                    "play": "Abspielen",
+                    "pause": "Pause",
+                    "mute": "Stumm",
+                    "unmute": "Ton an",
+                    "quality": "Qualit&auml;t",
+                    "captions": "Untertitel",
+                    "close": "Schlie&szlig;en",
+                    "fullscreen": "Vollbild",
+                    "exitFullscreen": "Vollbild beenden",
+                    "summary": "Zusammenfassung",
+                    "bookmarks": "Lesezeichen",
+                    "defaultAdaptivitySeekLabel": "Weiter bei @timecode",
+                    "continueWithVideo": "Video fortsetzen",
+                    "more": "Mehr",
+                    "playbackRate": "Geschwindigkeit",
+                    "rewind10": "10 Sekunden zur&uuml;ck",
+                    "navDisabled": "Navigation deaktiviert",
+                    "requiresCompletionWarning": "Beantworte alle Fragen, um fortzufahren.",
+                    "back": "Zur&uuml;ck",
+                    "hours": "Stunden",
+                    "minutes": "Minuten",
+                    "seconds": "Sekunden",
+                    "currentTime": "Aktuelle Zeit:",
+                    "totalTime": "Gesamtzeit:",
+                    "singleInteractionAnnouncement": "Interaktion erschien",
+                    "multipleInteractionsAnnouncement": "Mehrere Interaktionen erschienen",
+                    "videoPausedAnnouncement": "Video pausiert"
+                }
+            }
+
+            # Build dependencies list
+            dependencies = [
+                {"machineName": "H5P.InteractiveVideo", "majorVersion": 1, "minorVersion": 27},
+                {"machineName": "H5P.Video", "majorVersion": 1, "minorVersion": 6},
+                {"machineName": "H5P.Summary", "majorVersion": 1, "minorVersion": 10},
+                {"machineName": "H5P.JoubelUI", "majorVersion": 1, "minorVersion": 3},
+                {"machineName": "H5P.Question", "majorVersion": 1, "minorVersion": 5},
+            ]
+
+            # Add interaction-specific dependencies
+            for lib in interaction_libs:
+                lib_parts = lib.split(' ')
+                name = lib_parts[0]
+                version = lib_parts[1].split('.')
+                dependencies.append({
+                    "machineName": name,
+                    "majorVersion": int(version[0]),
+                    "minorVersion": int(version[1])
+                })
+
+            self._write_json(temp_dir / "content" / "content.json", content)
+            self._write_json(temp_dir / "h5p.json", self._create_h5p_meta(
+                title, "H5P.InteractiveVideo", dependencies
+            ))
+
+            output_path = self._package_h5p(temp_dir, output_name)
+            self._cleanup(temp_dir)
+
+            return H5PResult(success=True, path=output_path, content_type="InteractiveVideo", title=title)
+
+        except (H5PValidationError, H5PGenerationError) as e:
+            return H5PResult(success=False, error=str(e), content_type="InteractiveVideo", title=title)
+        except Exception as e:
+            return H5PResult(success=False, error=f"Unerwarteter Fehler: {e}", content_type="InteractiveVideo", title=title)
+
+
+# =============================================================================
 # Convenience Functions
 # =============================================================================
 
@@ -1554,10 +2160,19 @@ def create_multi_choice(title: str, questions: List[Dict], output_name: str = No
 
 
 def create_fill_blanks(title: str, text: str, output_name: str = None,
-                       style: H5PStyle = None) -> H5PResult:
-    """Erstellt einen Lückentext"""
+                       style: H5PStyle = None,
+                       task_description: str = None) -> H5PResult:
+    """Erstellt einen Lückentext
+
+    Args:
+        title: Titel
+        text: Text mit *Lücken* markiert
+        output_name: Dateiname
+        style: H5PStyle
+        task_description: Aufgabenstellung (Default: "Fülle die Lücken...")
+    """
     gen = FillInBlanksGenerator(style=style)
-    return gen.create(title, text, output_name)
+    return gen.create(title, text, output_name, task_description)
 
 
 def create_drag_drop(title: str, task: str, dropzones: List[str],
@@ -1632,6 +2247,34 @@ def create_memory_game(title: str, cards: List[Dict], output_name: str = None,
     return gen.create(title, cards, output_name)
 
 
+def create_essay(title: str, task_description: str, keywords: List[Dict],
+                 output_name: str = None, style: H5PStyle = None, **kwargs) -> H5PResult:
+    """Erstellt eine Essay-Aufgabe mit Keyword-Bewertung"""
+    gen = EssayGenerator(style=style)
+    return gen.create(title, task_description, keywords, output_name, **kwargs)
+
+
+def create_sort_paragraphs(title: str, paragraphs: List[str], output_name: str = None,
+                           style: H5PStyle = None, **kwargs) -> H5PResult:
+    """Erstellt eine Absatz-Sortier-Aufgabe"""
+    gen = SortParagraphsGenerator(style=style)
+    return gen.create(title, paragraphs, output_name, **kwargs)
+
+
+def create_branching_scenario(title: str, nodes: List[Dict], output_name: str = None,
+                              style: H5PStyle = None, **kwargs) -> H5PResult:
+    """Erstellt ein verzweigtes Lernszenario"""
+    gen = BranchingScenarioGenerator(style=style)
+    return gen.create(title, nodes, output_name, **kwargs)
+
+
+def create_interactive_video(title: str, video_url: str, interactions: List[Dict] = None,
+                             output_name: str = None, style: H5PStyle = None, **kwargs) -> H5PResult:
+    """Erstellt ein interaktives Video mit eingebetteten Aufgaben"""
+    gen = InteractiveVideoGenerator(style=style)
+    return gen.create(title, video_url, interactions, output_name, **kwargs)
+
+
 # =============================================================================
 # Batch Generation
 # =============================================================================
@@ -1665,6 +2308,7 @@ def batch_create(content_list: List[Dict], style: H5PStyle = None) -> List[H5PRe
         'drag_text': ('text', create_drag_text),
         'timeline': ('events', create_timeline),
         'memory_game': ('cards', create_memory_game),
+        'sort_paragraphs': ('paragraphs', create_sort_paragraphs),
     }
 
     for item in content_list:
@@ -1680,6 +2324,29 @@ def batch_create(content_list: List[Dict], style: H5PStyle = None) -> List[H5PRe
                 item.get('draggables', []),
                 output_name,
                 style
+            )
+        elif content_type == 'essay':
+            result = create_essay(
+                title,
+                item.get('task_description', ''),
+                item.get('keywords', []),
+                output_name,
+                style=style
+            )
+        elif content_type == 'branching_scenario':
+            result = create_branching_scenario(
+                title,
+                item.get('nodes', []),
+                output_name,
+                style=style
+            )
+        elif content_type == 'interactive_video':
+            result = create_interactive_video(
+                title,
+                item.get('video_url', ''),
+                item.get('interactions', []),
+                output_name,
+                style=style
             )
         elif content_type in type_mapping:
             data_key, func = type_mapping[content_type]

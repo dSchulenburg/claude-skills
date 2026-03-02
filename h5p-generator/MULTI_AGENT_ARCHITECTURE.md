@@ -347,33 +347,42 @@ def choose_container(elements: list, structure: str) -> str | None:
 
 ## Implementierungsplan
 
-### Phase 1: Grundlagen (Woche 1)
+### Phase 1: Grundlagen ✅ ABGESCHLOSSEN
 
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| 1.1 | Orchestrator-Klasse mit Analyse-Logik | ⬜ |
-| 1.2 | Sub-Agent Basisklasse mit Selbst-Korrektur | ⬜ |
-| 1.3 | Quiz-Agent implementieren | ⬜ |
-| 1.4 | Card-Agent implementieren | ⬜ |
-| 1.5 | Drag-Agent implementieren | ⬜ |
+| 1.1 | Orchestrator-Klasse mit Analyse-Logik | ✅ |
+| 1.2 | Sub-Agent Basisklasse mit Selbst-Korrektur | ✅ |
+| 1.3 | Quiz-Agent implementieren | ✅ |
+| 1.4 | Card-Agent implementieren | ✅ |
+| 1.5 | Drag-Agent implementieren | ✅ |
 
-### Phase 2: Container-Typen (Woche 2)
-
-| Task | Beschreibung | Status |
-|------|--------------|--------|
-| 2.1 | Column-Generator zum h5p_generator.py | ⬜ |
-| 2.2 | Question Set-Generator | ⬜ |
-| 2.3 | Course Presentation-Generator | ⬜ |
-| 2.4 | Combiner-Agent Logik | ⬜ |
-
-### Phase 3: Integration (Woche 3)
+### Phase 2: Design & Branding ✅ ABGESCHLOSSEN
 
 | Task | Beschreibung | Status |
 |------|--------------|--------|
-| 3.1 | Async-Koordination mit asyncio | ⬜ |
-| 3.2 | Fehlerbehandlung und Retry | ⬜ |
-| 3.3 | Template-Lernen aus Ergebnissen | ⬜ |
-| 3.4 | Tests und Dokumentation | ⬜ |
+| 2.1 | Brand-Config mit Presets | ✅ |
+| 2.2 | Design-Agent implementieren | ✅ |
+| 2.3 | Integration in Orchestrator | ✅ |
+| 2.4 | 6 Brand-Presets (bswi, minimal, dark, etc.) | ✅ |
+
+### Phase 3: System-Integration ✅ ABGESCHLOSSEN
+
+| Task | Beschreibung | Status |
+|------|--------------|--------|
+| 3.1 | H5PSystem Unified API | ✅ |
+| 3.2 | CLI Interface | ✅ |
+| 3.3 | Quick-Convenience-Funktionen | ✅ |
+| 3.4 | Integration Tests (10/10 bestanden) | ✅ |
+
+### Phase 4: Container-Typen (Geplant)
+
+| Task | Beschreibung | Status |
+|------|--------------|--------|
+| 4.1 | Column-Generator | ⬜ |
+| 4.2 | Question Set-Generator | ⬜ |
+| 4.3 | Course Presentation-Generator | ⬜ |
+| 4.4 | Combiner-Agent Logik | ⬜ |
 
 ---
 
@@ -451,25 +460,64 @@ ExecutionPlan(
 ```
 h5p-generator/
 ├── scripts/
+│   ├── __init__.py               # Package exports
 │   ├── h5p_generator.py          # Basis-Generator (12 Typen)
-│   ├── agent_workflow.py         # Aktueller einfacher Agent
-│   ├── orchestrator.py           # NEU: Orchestrator Agent
-│   ├── sub_agents/               # NEU: Sub-Agents
+│   ├── h5p_system.py             # ✅ Unified API (Haupteinstiegspunkt)
+│   ├── cli.py                    # ✅ Command Line Interface
+│   ├── orchestrator.py           # ✅ Orchestrator Agent
+│   ├── brand_config.py           # ✅ Brand-Konfiguration & Presets
+│   ├── agent_workflow.py         # Legacy Agent (deprecated)
+│   ├── sub_agents/               # ✅ Sub-Agents
 │   │   ├── __init__.py
 │   │   ├── base_agent.py         # Basisklasse mit Selbst-Korrektur
-│   │   ├── quiz_agent.py
-│   │   ├── card_agent.py
-│   │   └── drag_agent.py
-│   └── combiner.py               # NEU: Combiner für Container
+│   │   ├── quiz_agent.py         # True/False, MultiChoice, Summary
+│   │   ├── card_agent.py         # Flashcards, Accordion, Timeline
+│   │   ├── drag_agent.py         # Drag&Drop, DragText, MarkWords
+│   │   └── design_agent.py       # ✅ Branding/CI anwenden
+│   ├── test_integration.py       # ✅ Integration Tests
+│   └── combiner.py               # TODO: Combiner für Container
 ├── references/
 │   ├── templates/
 │   │   ├── decision-matrix.md
-│   │   ├── container-types.json  # NEU: Container-Strukturen
 │   │   └── saved/
 │   └── h5p-json-structure.md
+├── test-output/                  # Generierte H5P-Dateien
 ├── SKILL.md
 ├── AGENT_WORKFLOW.md
 └── MULTI_AGENT_ARCHITECTURE.md   # Diese Datei
+```
+
+## Aktuelle System-Architektur (v2.0)
+
+```
+                    ┌─────────────────────────┐
+                    │      H5PSystem          │  ← Unified API
+                    │   (h5p_system.py)       │
+                    └───────────┬─────────────┘
+                                │
+              ┌─────────────────┴─────────────────┐
+              │         H5POrchestrator           │
+              │      (orchestrator.py)            │
+              │  Analyse → Plan → Execute → Design│
+              └─────────────────┬─────────────────┘
+                                │
+        ┌───────────┬───────────┼───────────┬───────────┐
+        │           │           │           │           │
+        ▼           ▼           ▼           ▼           ▼
+   ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+   │  Quiz   │ │  Card   │ │  Drag   │ │ Design  │ │ Combiner│
+   │  Agent  │ │  Agent  │ │  Agent  │ │  Agent  │ │ (TODO)  │
+   └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘
+        │           │           │           │
+        └───────────┴───────────┴───────────┘
+                        │
+                        ▼
+              ┌─────────────────────┐
+              │  Brand Presets      │
+              │  (brand_config.py)  │
+              │  bswi, minimal,     │
+              │  dark, professional │
+              └─────────────────────┘
 ```
 
 ---
@@ -486,7 +534,100 @@ h5p-generator/
 
 ---
 
+## Quick Start
+
+### Python API
+
+```python
+from scripts import H5PSystem
+
+# Einfachste Nutzung
+system = H5PSystem(brand='bswi')
+result = system.generate_from_text('''
+## Lernziele
+- Schueler koennen Scrum-Rollen nennen
+''', content_items=[
+    {'cards': [
+        {'front': 'PO', 'back': 'Product Owner'},
+        {'front': 'SM', 'back': 'Scrum Master'},
+    ]}
+])
+
+print(result.summary())
+```
+
+### CLI
+
+```bash
+# System-Info
+python cli.py info
+
+# Aus Datei generieren mit Branding
+python cli.py generate -f lerneinheit.md -b bswi
+
+# Batch-Generierung
+python cli.py batch elements.json -o ./output
+
+# Brand-Details anzeigen
+python cli.py brands bswi
+
+# H5P-Typ-Info
+python cli.py types flashcards
+```
+
+### Quick Functions
+
+```python
+from scripts import quick_flashcards, quick_quiz, quick_drag_drop
+
+# Schnelle Flashcards
+result = quick_flashcards('Vokabeln', [
+    {'front': 'house', 'back': 'Haus'},
+    {'front': 'car', 'back': 'Auto'},
+], brand='bswi')
+
+# Schnelles Quiz
+result = quick_quiz('Test', [
+    {'text': 'Python ist eine Programmiersprache.', 'correct': True}
+])
+
+# Schnelles Drag & Drop
+result = quick_drag_drop('Zuordnung',
+    dropzones=['A', 'B'],
+    draggables=[{'text': 'Item1', 'dropzone': 0}]
+)
+```
+
+---
+
+## Brand Presets
+
+| Preset | Beschreibung | Primary Color |
+|--------|--------------|---------------|
+| `default` | Standard-Theme | #1a73e8 |
+| `bswi` | BS:WI Hamburg | #003366 |
+| `minimal` | Minimalistisch | #333333 |
+| `dark` | Dark Mode | #8ab4f8 |
+| `professional` | Business | #1976d2 |
+| `accessible` | High Contrast | #0000ff |
+
+---
+
 ## Changelog
+
+### v2.0.0 (Aktuell)
+- ✅ H5PSystem als Unified API
+- ✅ CLI Interface mit allen Befehlen
+- ✅ Design Agent fuer Branding
+- ✅ 6 Brand-Presets
+- ✅ 10 Integration Tests bestanden
+- ✅ Quick-Convenience-Funktionen
+
+### v1.0.0
+- ✅ Orchestrator mit Analyse/Plan/Execute
+- ✅ Quiz-Agent, Card-Agent, Drag-Agent
+- ✅ Basis-Generator mit 12 H5P-Typen
+- ✅ Selbst-Korrektur und Fallback-Logik
 
 ### v0.1 (Planung)
 - Architektur-Dokumentation erstellt
@@ -495,4 +636,4 @@ h5p-generator/
 
 ---
 
-*Multi-Agent H5P Generation System - Planungsdokument*
+*Multi-Agent H5P Generation System v2.0 - Dokumentation*
